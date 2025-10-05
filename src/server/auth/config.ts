@@ -39,12 +39,11 @@ const ALLOWED_EMAILS: string[] = [
 ];
 
 export const authConfig = {
-  providers: [
-    GoogleProvider,
-  ],
+  providers: [GoogleProvider],
+  // @ts-expect-error - NextAuth adapter type mismatch between dependencies
   adapter: PrismaAdapter(db),
   callbacks: {
-    signIn: async ({ user, account, profile }) => {
+    signIn: async ({ user }) => {
       // Only allow sign-in for whitelisted emails
       if (!user.email) return false;
 
@@ -61,8 +60,8 @@ export const authConfig = {
       user: {
         ...session.user,
         id: user.id,
-        role: (user as any).role || "USER",
-        isActive: (user as any).isActive ?? true,
+        role: user.role ?? "USER",
+        isActive: user.isActive ?? true,
       },
     }),
   },

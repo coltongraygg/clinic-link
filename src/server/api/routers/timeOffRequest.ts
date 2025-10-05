@@ -1,18 +1,19 @@
 import { z } from "zod";
-import {
-  createTRPCRouter,
-  protectedProcedure,
-} from "@/server/api/trpc";
+import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 import { RequestStatus, NotificationType } from "@prisma/client";
 import { TRPCError } from "@trpc/server";
+import type { PrismaClient, Prisma } from "@prisma/client";
 
 const createNotification = async (
-  db: any,
+  db: Omit<
+    PrismaClient,
+    "$connect" | "$disconnect" | "$on" | "$transaction" | "$extends"
+  >,
   userId: string,
   type: NotificationType,
   title: string,
   message: string,
-  data?: any
+  data?: Prisma.InputJsonValue,
 ) => {
   return await db.notification.create({
     data: {
@@ -31,16 +32,18 @@ export const timeOffRequestRouter = createTRPCRouter({
       z.object({
         startDate: z.date(),
         endDate: z.date(),
-        sessions: z.array(
-          z.object({
-            clinicName: z.string().min(1),
-            date: z.date(),
-            startTime: z.date(),
-            endTime: z.date(),
-            notes: z.string().optional(),
-          })
-        ).min(1),
-      })
+        sessions: z
+          .array(
+            z.object({
+              clinicName: z.string().min(1),
+              date: z.date(),
+              startTime: z.date(),
+              endTime: z.date(),
+              notes: z.string().optional(),
+            }),
+          )
+          .min(1),
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       // Validate dates
@@ -59,7 +62,7 @@ export const timeOffRequestRouter = createTRPCRouter({
           endDate: input.endDate,
           status: RequestStatus.PENDING,
           clinicSessions: {
-            create: input.sessions.map(session => ({
+            create: input.sessions.map((session) => ({
               clinicName: session.clinicName,
               date: session.date,
               startTime: session.startTime,
@@ -82,16 +85,16 @@ export const timeOffRequestRouter = createTRPCRouter({
       });
 
       await Promise.all(
-        otherSupervisors.map(supervisor =>
+        otherSupervisors.map((supervisor) =>
           createNotification(
             ctx.db,
             supervisor.id,
             NotificationType.NEW_REQUEST,
             "New Coverage Request",
             `${ctx.session.user.name} has requested coverage for ${input.sessions.length} session(s)`,
-            { requestId: request.id }
-          )
-        )
+            { requestId: request.id },
+          ),
+        ),
       );
 
       return request;
@@ -99,15 +102,17 @@ export const timeOffRequestRouter = createTRPCRouter({
 
   getAll: protectedProcedure
     .input(
-      z.object({
-        status: z.nativeEnum(RequestStatus).optional(),
-        supervisorId: z.string().optional(),
-        startDate: z.date().optional(),
-        endDate: z.date().optional(),
-      }).optional()
+      z
+        .object({
+          status: z.nativeEnum(RequestStatus).optional(),
+          supervisorId: z.string().optional(),
+          startDate: z.date().optional(),
+          endDate: z.date().optional(),
+        })
+        .optional(),
     )
     .query(async ({ ctx, input }) => {
-      const where: any = {};
+      const where: Prisma.TimeOffRequestWhereInput = {};
 
       if (input?.status) {
         where.status = input.status;
@@ -155,9 +160,11 @@ export const timeOffRequestRouter = createTRPCRouter({
       });
 
       // Update status based on coverage
-      return requests.map(request => {
+      return requests.map((request) => {
         const totalSessions = request.clinicSessions.length;
-        const coveredSessions = request.clinicSessions.filter(s => s.coveredBySupervisorId).length;
+        const coveredSessions = request.clinicSessions.filter(
+          (s) => s.coveredBySupervisorId,
+        ).length;
 
         let status = request.status;
         if (coveredSessions === 0) {
@@ -168,7 +175,11 @@ export const timeOffRequestRouter = createTRPCRouter({
           status = RequestStatus.FULLY_COVERED;
         }
 
-        return { ...request, status, coverageProgress: { total: totalSessions, covered: coveredSessions } };
+        return {
+          ...request,
+          status,
+          coverageProgress: { total: totalSessions, covered: coveredSessions },
+        };
       });
     }),
 
@@ -210,10 +221,7 @@ export const timeOffRequestRouter = createTRPCRouter({
                 },
               },
             },
-            orderBy: [
-              { date: "asc" },
-              { startTime: "asc" },
-            ],
+            orderBy: [{ date: "asc" }, { startTime: "asc" }],
           },
         },
       });
@@ -227,7 +235,9 @@ export const timeOffRequestRouter = createTRPCRouter({
 
       // Calculate coverage status
       const totalSessions = request.clinicSessions.length;
-      const coveredSessions = request.clinicSessions.filter(s => s.coveredBySupervisorId).length;
+      const coveredSessions = request.clinicSessions.filter(
+        (s) => s.coveredBySupervisorId,
+      ).length;
 
       let status = request.status;
       if (coveredSessions === 0) {
@@ -238,7 +248,11 @@ export const timeOffRequestRouter = createTRPCRouter({
         status = RequestStatus.FULLY_COVERED;
       }
 
-      return { ...request, status, coverageProgress: { total: totalSessions, covered: coveredSessions } };
+      return {
+        ...request,
+        status,
+        coverageProgress: { total: totalSessions, covered: coveredSessions },
+      };
     }),
 
   getMyRequests: protectedProcedure.query(async ({ ctx }) => {
@@ -265,9 +279,11 @@ export const timeOffRequestRouter = createTRPCRouter({
       },
     });
 
-    return requests.map(request => {
+    return requests.map((request) => {
       const totalSessions = request.clinicSessions.length;
-      const coveredSessions = request.clinicSessions.filter(s => s.coveredBySupervisorId).length;
+      const coveredSessions = request.clinicSessions.filter(
+        (s) => s.coveredBySupervisorId,
+      ).length;
 
       let status = request.status;
       if (coveredSessions === 0) {
@@ -278,7 +294,11 @@ export const timeOffRequestRouter = createTRPCRouter({
         status = RequestStatus.FULLY_COVERED;
       }
 
-      return { ...request, status, coverageProgress: { total: totalSessions, covered: coveredSessions } };
+      return {
+        ...request,
+        status,
+        coverageProgress: { total: totalSessions, covered: coveredSessions },
+      };
     });
   }),
 
@@ -288,7 +308,7 @@ export const timeOffRequestRouter = createTRPCRouter({
         id: z.string(),
         startDate: z.date().optional(),
         endDate: z.date().optional(),
-      })
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       // Check if request belongs to current user
@@ -314,7 +334,9 @@ export const timeOffRequestRouter = createTRPCRouter({
       }
 
       // Check if any sessions are already covered
-      const hasCoveredSessions = request.clinicSessions.some(s => s.coveredBySupervisorId);
+      const hasCoveredSessions = request.clinicSessions.some(
+        (s) => s.coveredBySupervisorId,
+      );
       if (hasCoveredSessions) {
         throw new TRPCError({
           code: "BAD_REQUEST",
@@ -359,7 +381,9 @@ export const timeOffRequestRouter = createTRPCRouter({
       }
 
       // Check if any sessions are already covered
-      const hasCoveredSessions = request.clinicSessions.some(s => s.coveredBySupervisorId);
+      const hasCoveredSessions = request.clinicSessions.some(
+        (s) => s.coveredBySupervisorId,
+      );
       if (hasCoveredSessions) {
         throw new TRPCError({
           code: "BAD_REQUEST",

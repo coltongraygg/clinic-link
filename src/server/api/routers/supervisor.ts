@@ -1,8 +1,5 @@
 import { z } from "zod";
-import {
-  createTRPCRouter,
-  protectedProcedure,
-} from "@/server/api/trpc";
+import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 
 export const supervisorRouter = createTRPCRouter({
   getAll: protectedProcedure.query(async ({ ctx }) => {
@@ -53,9 +50,9 @@ export const supervisorRouter = createTRPCRouter({
         newRequestNotifications: z.boolean().optional(),
         claimNotifications: z.boolean().optional(),
         reminderNotifications: z.boolean().optional(),
-      })
+      }),
     )
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ input }) => {
       // This would update user preferences if we had a preferences table
       // For now, we'll return success
       return { success: true, preferences: input };
@@ -65,7 +62,7 @@ export const supervisorRouter = createTRPCRouter({
     .input(
       z.object({
         name: z.string().min(1).max(100).optional(),
-      })
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       const updatedUser = await ctx.db.user.update({

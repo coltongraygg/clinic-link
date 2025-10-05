@@ -1,7 +1,13 @@
 "use client";
 
 import React from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { AlertTriangle, RefreshCw } from "lucide-react";
 
@@ -15,7 +21,10 @@ interface ErrorBoundaryProps {
   fallback?: React.ComponentType<{ error: Error; reset: () => void }>;
 }
 
-export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
+export class ErrorBoundary extends React.Component<
+  ErrorBoundaryProps,
+  ErrorBoundaryState
+> {
   constructor(props: ErrorBoundaryProps) {
     super(props);
     this.state = { hasError: false };
@@ -47,29 +56,41 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
   }
 }
 
-function DefaultErrorFallback({ error, reset }: { error: Error; reset: () => void }) {
+function DefaultErrorFallback({
+  error,
+  reset,
+}: {
+  error: Error;
+  reset: () => void;
+}) {
   return (
-    <div className="min-h-[400px] flex items-center justify-center p-6">
+    <div className="flex min-h-[400px] items-center justify-center p-6">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <div className="flex justify-center mb-4">
+          <div className="mb-4 flex justify-center">
             <AlertTriangle className="h-16 w-16 text-red-500" />
           </div>
-          <CardTitle className="text-xl font-bold text-red-900">Something went wrong</CardTitle>
+          <CardTitle className="text-xl font-bold text-red-900">
+            Something went wrong
+          </CardTitle>
           <CardDescription className="text-red-700">
             An unexpected error occurred. Please try refreshing the page.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="text-sm text-gray-600 bg-gray-50 p-3 rounded border max-h-32 overflow-y-auto">
+          <div className="max-h-32 overflow-y-auto rounded border bg-gray-50 p-3 text-sm text-gray-600">
             <details>
-              <summary className="cursor-pointer font-medium">Error details</summary>
-              <pre className="mt-2 text-xs whitespace-pre-wrap">{error.message}</pre>
+              <summary className="cursor-pointer font-medium">
+                Error details
+              </summary>
+              <pre className="mt-2 text-xs whitespace-pre-wrap">
+                {error.message}
+              </pre>
             </details>
           </div>
           <div className="flex gap-2">
             <Button onClick={reset} className="flex-1">
-              <RefreshCw className="h-4 w-4 mr-2" />
+              <RefreshCw className="mr-2 h-4 w-4" />
               Try Again
             </Button>
             <Button
@@ -89,7 +110,7 @@ function DefaultErrorFallback({ error, reset }: { error: Error; reset: () => voi
 // Higher-order component for easier usage
 export function withErrorBoundary<P extends object>(
   Component: React.ComponentType<P>,
-  fallback?: React.ComponentType<{ error: Error; reset: () => void }>
+  fallback?: React.ComponentType<{ error: Error; reset: () => void }>,
 ) {
   return function WithErrorBoundaryComponent(props: P) {
     return (

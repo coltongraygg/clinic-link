@@ -11,12 +11,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
-  CalendarIcon,
-  Plus,
-  Trash2,
-} from "lucide-react";
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { CalendarIcon, Plus, Trash2 } from "lucide-react";
 import { api } from "@/trpc/react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -25,8 +25,12 @@ import autoAnimate from "@formkit/auto-animate";
 const sessionSchema = z.object({
   clinicName: z.string().min(1, "Clinic name is required"),
   date: z.date(),
-  startTime: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, "Invalid time format"),
-  endTime: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, "Invalid time format"),
+  startTime: z
+    .string()
+    .regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, "Invalid time format"),
+  endTime: z
+    .string()
+    .regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, "Invalid time format"),
   notes: z.string().optional(),
 });
 
@@ -56,13 +60,15 @@ export default function RequestForm() {
   } = useForm<RequestFormData>({
     resolver: zodResolver(requestSchema),
     defaultValues: {
-      sessions: [{
-        clinicName: "",
-        date: new Date(),
-        startTime: "09:00",
-        endTime: "17:00",
-        notes: "",
-      }],
+      sessions: [
+        {
+          clinicName: "",
+          date: new Date(),
+          startTime: "09:00",
+          endTime: "17:00",
+          notes: "",
+        },
+      ],
     },
   });
 
@@ -100,15 +106,25 @@ export default function RequestForm() {
 
   const onSubmit = async (data: RequestFormData) => {
     // Convert time strings to Date objects
-    const formattedSessions = data.sessions.map(session => {
-      const [startHour, startMinute] = session.startTime.split(':');
-      const [endHour, endMinute] = session.endTime.split(':');
+    const formattedSessions = data.sessions.map((session) => {
+      const [startHour, startMinute] = session.startTime.split(":");
+      const [endHour, endMinute] = session.endTime.split(":");
 
       const startTime = new Date(session.date);
-      startTime.setHours(parseInt(startHour), parseInt(startMinute), 0, 0);
+      startTime.setHours(
+        parseInt(startHour ?? "0", 10),
+        parseInt(startMinute ?? "0", 10),
+        0,
+        0,
+      );
 
       const endTime = new Date(session.date);
-      endTime.setHours(parseInt(endHour), parseInt(endMinute), 0, 0);
+      endTime.setHours(
+        parseInt(endHour ?? "0", 10),
+        parseInt(endMinute ?? "0", 10),
+        0,
+        0,
+      );
 
       return {
         ...session,
@@ -118,9 +134,11 @@ export default function RequestForm() {
     });
 
     // Auto-calculate startDate and endDate from sessions
-    const sessionDates = formattedSessions.map(s => s.date);
-    const startDate = new Date(Math.min(...sessionDates.map(d => d.getTime())));
-    const endDate = new Date(Math.max(...sessionDates.map(d => d.getTime())));
+    const sessionDates = formattedSessions.map((s) => s.date);
+    const startDate = new Date(
+      Math.min(...sessionDates.map((d) => d.getTime())),
+    );
+    const endDate = new Date(Math.max(...sessionDates.map((d) => d.getTime())));
 
     createRequestMutation.mutate({
       startDate,
@@ -132,7 +150,6 @@ export default function RequestForm() {
   return (
     <div className="pb-24">
       <div className="container mx-auto max-w-3xl px-4 py-6">
-
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
           {/* Sessions List */}
           <div ref={sessionsRef} className="space-y-4">
@@ -147,13 +164,14 @@ export default function RequestForm() {
                         <Button
                           variant="outline"
                           className={cn(
-                            "w-full justify-start text-left font-normal mt-2",
-                            !watchedValues.sessions?.[index]?.date && "text-muted-foreground"
+                            "mt-2 w-full justify-start text-left font-normal",
+                            !watchedValues.sessions?.[index]?.date &&
+                              "text-muted-foreground",
                           )}
                         >
                           <CalendarIcon className="mr-2 h-4 w-4" />
                           {watchedValues.sessions?.[index]?.date
-                            ? format(watchedValues.sessions[index]!.date, "PPP")
+                            ? format(watchedValues.sessions[index].date, "PPP")
                             : "Pick a date"}
                         </Button>
                       </PopoverTrigger>
@@ -161,8 +179,12 @@ export default function RequestForm() {
                         <Calendar
                           mode="single"
                           selected={watchedValues.sessions?.[index]?.date}
-                          onSelect={(date) => setValue(`sessions.${index}.date`, date!)}
-                          disabled={(date) => date < new Date(new Date().setHours(0,0,0,0))}
+                          onSelect={(date) =>
+                            date && setValue(`sessions.${index}.date`, date)
+                          }
+                          disabled={(date) =>
+                            date < new Date(new Date().setHours(0, 0, 0, 0))
+                          }
                           initialFocus
                         />
                       </PopoverContent>
@@ -171,14 +193,16 @@ export default function RequestForm() {
 
                   {/* Clinic Name */}
                   <div>
-                    <Label htmlFor={`sessions.${index}.clinicName`}>Clinic Name</Label>
+                    <Label htmlFor={`sessions.${index}.clinicName`}>
+                      Clinic Name
+                    </Label>
                     <Input
                       {...register(`sessions.${index}.clinicName`)}
                       placeholder="e.g., Tuesday Trauma Clinic"
                       className="mt-2"
                     />
                     {errors.sessions?.[index]?.clinicName && (
-                      <p className="text-sm text-destructive mt-1">
+                      <p className="text-destructive mt-1 text-sm">
                         {errors.sessions[index]?.clinicName?.message}
                       </p>
                     )}
@@ -187,27 +211,31 @@ export default function RequestForm() {
                   {/* Times */}
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <Label htmlFor={`sessions.${index}.startTime`}>Start Time</Label>
+                      <Label htmlFor={`sessions.${index}.startTime`}>
+                        Start Time
+                      </Label>
                       <Input
                         {...register(`sessions.${index}.startTime`)}
                         type="time"
                         className="mt-2"
                       />
                       {errors.sessions?.[index]?.startTime && (
-                        <p className="text-sm text-destructive mt-1">
+                        <p className="text-destructive mt-1 text-sm">
                           {errors.sessions[index]?.startTime?.message}
                         </p>
                       )}
                     </div>
                     <div>
-                      <Label htmlFor={`sessions.${index}.endTime`}>End Time</Label>
+                      <Label htmlFor={`sessions.${index}.endTime`}>
+                        End Time
+                      </Label>
                       <Input
                         {...register(`sessions.${index}.endTime`)}
                         type="time"
                         className="mt-2"
                       />
                       {errors.sessions?.[index]?.endTime && (
-                        <p className="text-sm text-destructive mt-1">
+                        <p className="text-destructive mt-1 text-sm">
                           {errors.sessions[index]?.endTime?.message}
                         </p>
                       )}
@@ -216,7 +244,9 @@ export default function RequestForm() {
 
                   {/* Notes */}
                   <div>
-                    <Label htmlFor={`sessions.${index}.notes`}>Notes (Optional)</Label>
+                    <Label htmlFor={`sessions.${index}.notes`}>
+                      Notes (Optional)
+                    </Label>
                     <Textarea
                       {...register(`sessions.${index}.notes`)}
                       placeholder="Any specific details..."
@@ -227,7 +257,7 @@ export default function RequestForm() {
 
                   {/* Remove Button */}
                   {fields.length > 1 && (
-                    <div className="flex justify-end pt-2 border-t">
+                    <div className="flex justify-end border-t pt-2">
                       <Button
                         variant="ghost"
                         size="sm"
@@ -235,7 +265,7 @@ export default function RequestForm() {
                         type="button"
                         className="text-destructive hover:text-destructive"
                       >
-                        <Trash2 className="h-4 w-4 mr-2" />
+                        <Trash2 className="mr-2 h-4 w-4" />
                         Remove
                       </Button>
                     </div>
@@ -252,13 +282,13 @@ export default function RequestForm() {
             onClick={addSession}
             className="w-full"
           >
-            <Plus className="h-4 w-4 mr-2" />
+            <Plus className="mr-2 h-4 w-4" />
             Add Another Session
           </Button>
 
           {/* Form Errors */}
           {errors.sessions && (
-            <p className="text-sm text-destructive">
+            <p className="text-destructive text-sm">
               {errors.sessions.message}
             </p>
           )}
@@ -278,7 +308,9 @@ export default function RequestForm() {
               disabled={isSubmitting || createRequestMutation.isPending}
               className="flex-1"
             >
-              {isSubmitting || createRequestMutation.isPending ? "Submitting..." : "Submit Request"}
+              {isSubmitting || createRequestMutation.isPending
+                ? "Submitting..."
+                : "Submit Request"}
             </Button>
           </div>
         </form>
@@ -286,4 +318,3 @@ export default function RequestForm() {
     </div>
   );
 }
-

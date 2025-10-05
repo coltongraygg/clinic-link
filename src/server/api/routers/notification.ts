@@ -1,8 +1,6 @@
 import { z } from "zod";
-import {
-  createTRPCRouter,
-  protectedProcedure,
-} from "@/server/api/trpc";
+import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
+import type { Prisma } from "@prisma/client";
 
 export const notificationRouter = createTRPCRouter({
   getUnread: protectedProcedure.query(async ({ ctx }) => {
@@ -22,13 +20,15 @@ export const notificationRouter = createTRPCRouter({
 
   getAll: protectedProcedure
     .input(
-      z.object({
-        limit: z.number().min(1).max(100).default(50),
-        cursor: z.string().optional(),
-      }).optional()
+      z
+        .object({
+          limit: z.number().min(1).max(100).default(50),
+          cursor: z.string().optional(),
+        })
+        .optional(),
     )
     .query(async ({ ctx, input }) => {
-      const limit = input?.limit || 50;
+      const limit = input?.limit ?? 50;
 
       const notifications = await ctx.db.notification.findMany({
         where: {
@@ -41,7 +41,7 @@ export const notificationRouter = createTRPCRouter({
         cursor: input?.cursor ? { id: input.cursor } : undefined,
       });
 
-      let nextCursor: typeof input.cursor | undefined = undefined;
+      let nextCursor: string | undefined = undefined;
       if (notifications.length > limit) {
         const nextItem = notifications.pop();
         nextCursor = nextItem!.id;
@@ -58,10 +58,10 @@ export const notificationRouter = createTRPCRouter({
       z.object({
         notificationIds: z.array(z.string()).optional(),
         markAll: z.boolean().optional(),
-      })
+      }),
     )
     .mutation(async ({ ctx, input }) => {
-      const where: any = {
+      const where: Prisma.NotificationWhereInput = {
         userId: ctx.session.user.id,
       };
 
@@ -116,12 +116,14 @@ export const notificationRouter = createTRPCRouter({
 
   deleteAll: protectedProcedure
     .input(
-      z.object({
-        onlyRead: z.boolean().optional(),
-      }).optional()
+      z
+        .object({
+          onlyRead: z.boolean().optional(),
+        })
+        .optional(),
     )
     .mutation(async ({ ctx, input }) => {
-      const where: any = {
+      const where: Prisma.NotificationWhereInput = {
         userId: ctx.session.user.id,
       };
 

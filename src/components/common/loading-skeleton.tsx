@@ -4,26 +4,26 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 export function DashboardSkeleton() {
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="container mx-auto p-6 space-y-6">
+      <div className="container mx-auto space-y-6 p-6">
         {/* Header Skeleton */}
-        <div className="flex justify-between items-center">
+        <div className="flex items-center justify-between">
           <div>
-            <Skeleton className="h-8 w-64 mb-2" />
+            <Skeleton className="mb-2 h-8 w-64" />
             <Skeleton className="h-4 w-48" />
           </div>
           <Skeleton className="h-10 w-40" />
         </div>
 
         {/* Stats Cards Skeleton */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          {[...Array(4)].map((_, i) => (
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+          {Array.from({ length: 4 }).map((_, i) => (
             <Card key={i}>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <Skeleton className="h-4 w-24" />
                 <Skeleton className="h-4 w-4" />
               </CardHeader>
               <CardContent>
-                <Skeleton className="h-7 w-12 mb-1" />
+                <Skeleton className="mb-1 h-7 w-12" />
                 <Skeleton className="h-3 w-16" />
               </CardContent>
             </Card>
@@ -31,8 +31,8 @@ export function DashboardSkeleton() {
         </div>
 
         {/* Main Grid Skeleton */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {[...Array(2)].map((_, i) => (
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+          {Array.from({ length: 2 }).map((_, i) => (
             <Card key={i}>
               <CardHeader>
                 <Skeleton className="h-5 w-48" />
@@ -40,10 +40,10 @@ export function DashboardSkeleton() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
-                  {[...Array(3)].map((_, j) => (
-                    <div key={j} className="p-4 border rounded">
-                      <Skeleton className="h-4 w-32 mb-2" />
-                      <Skeleton className="h-3 w-48 mb-2" />
+                  {Array.from({ length: 3 }).map((_, j) => (
+                    <div key={j} className="rounded border p-4">
+                      <Skeleton className="mb-2 h-4 w-32" />
+                      <Skeleton className="mb-2 h-3 w-48" />
                       <Skeleton className="h-3 w-24" />
                     </div>
                   ))}
@@ -59,10 +59,10 @@ export function DashboardSkeleton() {
 
 export function SessionCardSkeleton() {
   return (
-    <div className="p-4 rounded-lg border">
-      <div className="flex justify-between items-start mb-2">
+    <div className="rounded-lg border p-4">
+      <div className="mb-2 flex items-start justify-between">
         <div>
-          <Skeleton className="h-4 w-32 mb-1" />
+          <Skeleton className="mb-1 h-4 w-32" />
           <div className="flex items-center gap-2">
             <Skeleton className="h-5 w-16" />
             <Skeleton className="h-3 w-12" />
@@ -83,15 +83,15 @@ export function FormSkeleton() {
     <div className="space-y-6">
       <div className="space-y-4">
         <div>
-          <Skeleton className="h-4 w-24 mb-2" />
+          <Skeleton className="mb-2 h-4 w-24" />
           <Skeleton className="h-10 w-full" />
         </div>
         <div>
-          <Skeleton className="h-4 w-24 mb-2" />
+          <Skeleton className="mb-2 h-4 w-24" />
           <Skeleton className="h-10 w-full" />
         </div>
         <div>
-          <Skeleton className="h-4 w-24 mb-2" />
+          <Skeleton className="mb-2 h-4 w-24" />
           <Skeleton className="h-20 w-full" />
         </div>
       </div>
@@ -106,13 +106,13 @@ export function FormSkeleton() {
 export function ListSkeleton({ count = 5 }: { count?: number }) {
   return (
     <div className="space-y-3">
-      {[...Array(count)].map((_, i) => (
-        <div key={i} className="border rounded-lg p-4">
-          <div className="flex justify-between items-start mb-2">
+      {Array.from({ length: count }).map((_, i) => (
+        <div key={i} className="rounded-lg border p-4">
+          <div className="mb-2 flex items-start justify-between">
             <Skeleton className="h-5 w-48" />
             <Skeleton className="h-6 w-20" />
           </div>
-          <Skeleton className="h-4 w-64 mb-1" />
+          <Skeleton className="mb-1 h-4 w-64" />
           <Skeleton className="h-3 w-40" />
         </div>
       ))}

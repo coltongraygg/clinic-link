@@ -1,16 +1,21 @@
 "use client";
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   AlertTriangle,
   Clock,
-  Calendar,
   User,
   ArrowRight,
-  CheckCircle2
+  CheckCircle2,
 } from "lucide-react";
 import { format } from "date-fns";
 import { useRouter } from "next/navigation";
@@ -43,15 +48,17 @@ interface UrgentCoverageSectionProps {
   };
 }
 
-export default function UrgentCoverageSection({ urgentSessions }: UrgentCoverageSectionProps) {
+export default function UrgentCoverageSection({
+  urgentSessions,
+}: UrgentCoverageSectionProps) {
   const router = useRouter();
   const utils = api.useUtils();
 
   const claimMutation = api.clinicSession.claim.useMutation({
     onSuccess: () => {
       toast.success("Session claimed successfully!");
-      utils.dashboard.getUrgentSessions.invalidate();
-      utils.dashboard.getStats.invalidate();
+      void utils.dashboard.getUrgentSessions.invalidate();
+      void utils.dashboard.getStats.invalidate();
     },
     onError: (error) => {
       toast.error(error.message);
@@ -62,14 +69,25 @@ export default function UrgentCoverageSection({ urgentSessions }: UrgentCoverage
     claimMutation.mutate({ sessionId });
   };
 
-  const SessionCard = ({ session, isCritical }: { session: UrgentSession; isCritical: boolean }) => (
-    <div className={`p-4 rounded-lg border ${isCritical ? 'border-red-200 bg-red-50' : 'border-orange-200 bg-orange-50'}`}>
-      <div className="flex justify-between items-start mb-2">
+  const SessionCard = ({
+    session,
+    isCritical,
+  }: {
+    session: UrgentSession;
+    isCritical: boolean;
+  }) => (
+    <div
+      className={`rounded-lg border p-4 ${isCritical ? "border-red-200 bg-red-50" : "border-orange-200 bg-orange-50"}`}
+    >
+      <div className="mb-2 flex items-start justify-between">
         <div>
           <h4 className="font-semibold text-gray-900">{session.clinicName}</h4>
-          <div className="flex items-center gap-2 mt-1">
-            <Badge variant={isCritical ? "destructive" : "secondary"} className="text-xs">
-              <AlertTriangle className="h-3 w-3 mr-1" />
+          <div className="mt-1 flex items-center gap-2">
+            <Badge
+              variant={isCritical ? "destructive" : "secondary"}
+              className="text-xs"
+            >
+              <AlertTriangle className="mr-1 h-3 w-3" />
               {isCritical ? "Critical" : "Urgent"}
             </Badge>
             <span className="text-xs text-gray-600">
@@ -89,14 +107,15 @@ export default function UrgentCoverageSection({ urgentSessions }: UrgentCoverage
       <div className="space-y-1 text-sm">
         <div className="flex items-center gap-2 text-gray-600">
           <Clock className="h-3 w-3" />
-          {format(new Date(session.startTime), "h:mm a")} - {format(new Date(session.endTime), "h:mm a")}
+          {format(new Date(session.startTime), "h:mm a")} -{" "}
+          {format(new Date(session.endTime), "h:mm a")}
         </div>
         <div className="flex items-center gap-2 text-gray-600">
           <User className="h-3 w-3" />
-          {session.request.supervisor.name || session.request.supervisor.email}
+          {session.request.supervisor.name ?? session.request.supervisor.email}
         </div>
         {session.notes && (
-          <div className="text-xs text-gray-500 italic mt-2">
+          <div className="mt-2 text-xs text-gray-500 italic">
             Note: {session.notes}
           </div>
         )}
@@ -117,8 +136,8 @@ export default function UrgentCoverageSection({ urgentSessions }: UrgentCoverage
       </CardHeader>
       <CardContent>
         {urgentSessions.total === 0 ? (
-          <div className="text-center py-8 text-gray-500">
-            <CheckCircle2 className="h-12 w-12 mx-auto mb-3 text-green-500" />
+          <div className="py-8 text-center text-gray-500">
+            <CheckCircle2 className="mx-auto mb-3 h-12 w-12 text-green-500" />
             <p>All sessions are covered for the next week!</p>
           </div>
         ) : (
@@ -126,20 +145,28 @@ export default function UrgentCoverageSection({ urgentSessions }: UrgentCoverage
             <ScrollArea className="h-[400px] pr-4">
               <div className="space-y-3">
                 {urgentSessions.critical.map((session) => (
-                  <SessionCard key={session.id} session={session} isCritical={true} />
+                  <SessionCard
+                    key={session.id}
+                    session={session}
+                    isCritical={true}
+                  />
                 ))}
                 {urgentSessions.urgent.map((session) => (
-                  <SessionCard key={session.id} session={session} isCritical={false} />
+                  <SessionCard
+                    key={session.id}
+                    session={session}
+                    isCritical={false}
+                  />
                 ))}
               </div>
             </ScrollArea>
             <Button
               variant="outline"
-              className="w-full mt-4"
-              onClick={() => router.push('/coverage')}
+              className="mt-4 w-full"
+              onClick={() => router.push("/coverage")}
             >
               View All Uncovered Sessions
-              <ArrowRight className="h-4 w-4 ml-2" />
+              <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
           </>
         )}

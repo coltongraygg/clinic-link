@@ -2,7 +2,13 @@
 
 import { useState } from "react";
 import { format } from "date-fns";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -10,12 +16,11 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   Calendar,
   Clock,
-  Users,
   CheckCircle2,
   AlertCircle,
   Trash2,
   Eye,
-  Plus
+  Plus,
 } from "lucide-react";
 import { api } from "@/trpc/react";
 import { toast } from "sonner";
@@ -52,28 +57,22 @@ interface TimeOffRequest {
   };
 }
 
-interface MyRequestsListProps {
-  initialRequests: TimeOffRequest[];
-}
-
-export default function MyRequestsList({ initialRequests }: MyRequestsListProps) {
-  const [deleteDialog, setDeleteDialog] = useState<{ open: boolean; requestId?: string }>({
+export default function MyRequestsList() {
+  const [deleteDialog, setDeleteDialog] = useState<{
+    open: boolean;
+    requestId?: string;
+  }>({
     open: false,
   });
 
   const utils = api.useUtils();
 
-  const { data: requests } = api.timeOffRequest.getMyRequests.useQuery(
-    undefined,
-    {
-      initialData: initialRequests,
-    }
-  );
+  const { data: requests } = api.timeOffRequest.getMyRequests.useQuery();
 
   const deleteRequestMutation = api.timeOffRequest.delete.useMutation({
     onSuccess: () => {
       toast.success("Request deleted successfully");
-      utils.timeOffRequest.getMyRequests.invalidate();
+      void utils.timeOffRequest.getMyRequests.invalidate();
       setDeleteDialog({ open: false });
     },
     onError: (error) => {
@@ -81,14 +80,16 @@ export default function MyRequestsList({ initialRequests }: MyRequestsListProps)
     },
   });
 
-  const getStatusColor = (status: string) => {
+  const getStatusColor = (
+    status: string,
+  ): "destructive" | "secondary" | "outline" | "default" => {
     switch (status) {
       case "PENDING":
         return "destructive";
       case "PARTIAL_COVERED":
         return "secondary";
       case "FULLY_COVERED":
-        return "success";
+        return "secondary";
       case "COMPLETE":
         return "outline";
       default:
@@ -127,15 +128,17 @@ export default function MyRequestsList({ initialRequests }: MyRequestsListProps)
 
   if (!requests || requests.length === 0) {
     return (
-      <div className="text-center py-12">
-        <Calendar className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-        <h3 className="text-lg font-medium text-gray-900 mb-2">No coverage requests</h3>
-        <p className="text-gray-600 mb-6">
-          You haven't submitted any coverage requests yet.
+      <div className="py-12 text-center">
+        <Calendar className="mx-auto mb-4 h-16 w-16 text-gray-400" />
+        <h3 className="mb-2 text-lg font-medium text-gray-900">
+          No coverage requests
+        </h3>
+        <p className="mb-6 text-gray-600">
+          You haven&apos;t submitted any coverage requests yet.
         </p>
         <Link href="/request">
           <Button>
-            <Plus className="h-4 w-4 mr-2" />
+            <Plus className="mr-2 h-4 w-4" />
             Create First Request
           </Button>
         </Link>
@@ -149,17 +152,22 @@ export default function MyRequestsList({ initialRequests }: MyRequestsListProps)
         {requests.map((request) => (
           <Card key={request.id}>
             <CardHeader>
-              <div className="flex justify-between items-start">
+              <div className="flex items-start justify-between">
                 <div>
                   <CardTitle className="text-lg">
-                    {format(new Date(request.startDate), "MMM d")} - {format(new Date(request.endDate), "MMM d, yyyy")}
+                    {format(new Date(request.startDate), "MMM d")} -{" "}
+                    {format(new Date(request.endDate), "MMM d, yyyy")}
                   </CardTitle>
                   <CardDescription>
-                    Submitted {format(new Date(request.createdAt), "MMM d, yyyy 'at' h:mm a")}
+                    Submitted{" "}
+                    {format(
+                      new Date(request.createdAt),
+                      "MMM d, yyyy 'at' h:mm a",
+                    )}
                   </CardDescription>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Badge variant={getStatusColor(request.status) as any}>
+                  <Badge variant={getStatusColor(request.status)}>
                     {getStatusText(request.status)}
                   </Badge>
                 </div>
@@ -168,44 +176,51 @@ export default function MyRequestsList({ initialRequests }: MyRequestsListProps)
             <CardContent className="space-y-4">
               {/* Coverage Progress */}
               <div>
-                <div className="flex justify-between items-center mb-2">
+                <div className="mb-2 flex items-center justify-between">
                   <span className="text-sm font-medium">Coverage Progress</span>
                   <span className="text-sm text-gray-600">
-                    {request.coverageProgress.covered} of {request.coverageProgress.total} sessions covered
+                    {request.coverageProgress.covered} of{" "}
+                    {request.coverageProgress.total} sessions covered
                   </span>
                 </div>
                 <Progress
-                  value={(request.coverageProgress.covered / request.coverageProgress.total) * 100}
+                  value={
+                    (request.coverageProgress.covered /
+                      request.coverageProgress.total) *
+                    100
+                  }
                   className="h-2"
                 />
               </div>
 
               {/* Sessions */}
               <div>
-                <h4 className="font-medium mb-3 flex items-center">
-                  <Clock className="h-4 w-4 mr-2" />
+                <h4 className="mb-3 flex items-center font-medium">
+                  <Clock className="mr-2 h-4 w-4" />
                   Sessions ({request.clinicSessions.length})
                 </h4>
                 <div className="grid gap-3">
                   {request.clinicSessions.map((session) => (
                     <div
                       key={session.id}
-                      className={`p-3 rounded-lg border ${
+                      className={`rounded-lg border p-3 ${
                         session.coveredBySupervisorId
-                          ? 'bg-green-50 border-green-200'
-                          : 'bg-red-50 border-red-200'
+                          ? "border-green-200 bg-green-50"
+                          : "border-red-200 bg-red-50"
                       }`}
                     >
-                      <div className="flex justify-between items-start">
+                      <div className="flex items-start justify-between">
                         <div>
-                          <div className="font-medium">{session.clinicName}</div>
+                          <div className="font-medium">
+                            {session.clinicName}
+                          </div>
                           <div className="text-sm text-gray-600">
                             {format(new Date(session.date), "MMM d, yyyy")} •
                             {format(new Date(session.startTime), "h:mm a")} -
                             {format(new Date(session.endTime), "h:mm a")}
                           </div>
                           {session.notes && (
-                            <div className="text-sm text-gray-500 mt-1 italic">
+                            <div className="mt-1 text-sm text-gray-500 italic">
                               Note: {session.notes}
                             </div>
                           )}
@@ -213,14 +228,16 @@ export default function MyRequestsList({ initialRequests }: MyRequestsListProps)
                         <div className="flex items-center gap-2">
                           {session.coveredBySupervisorId ? (
                             <div className="flex items-center text-green-700">
-                              <CheckCircle2 className="h-4 w-4 mr-1" />
+                              <CheckCircle2 className="mr-1 h-4 w-4" />
                               <span className="text-sm">
-                                Covered by {session.coveredBy?.name || session.coveredBy?.email}
+                                Covered by{" "}
+                                {session.coveredBy?.name ??
+                                  session.coveredBy?.email}
                               </span>
                             </div>
                           ) : (
                             <div className="flex items-center text-red-700">
-                              <AlertCircle className="h-4 w-4 mr-1" />
+                              <AlertCircle className="mr-1 h-4 w-4" />
                               <span className="text-sm">Needs coverage</span>
                             </div>
                           )}
@@ -232,19 +249,24 @@ export default function MyRequestsList({ initialRequests }: MyRequestsListProps)
               </div>
 
               {/* Actions */}
-              <div className="flex justify-between items-center pt-4 border-t">
+              <div className="flex items-center justify-between border-t pt-4">
                 <div className="text-sm text-gray-500">
-                  {request.coverageProgress.covered === request.coverageProgress.total ? (
-                    <span className="text-green-600 font-medium">All sessions covered!</span>
+                  {request.coverageProgress.covered ===
+                  request.coverageProgress.total ? (
+                    <span className="font-medium text-green-600">
+                      All sessions covered!
+                    </span>
                   ) : (
                     <span>
-                      {request.coverageProgress.total - request.coverageProgress.covered} session(s) still need coverage
+                      {request.coverageProgress.total -
+                        request.coverageProgress.covered}{" "}
+                      session(s) still need coverage
                     </span>
                   )}
                 </div>
                 <div className="flex gap-2">
                   <Button variant="outline" size="sm">
-                    <Eye className="h-4 w-4 mr-2" />
+                    <Eye className="mr-2 h-4 w-4" />
                     View Details
                   </Button>
                   {canDelete(request) && (
@@ -254,7 +276,7 @@ export default function MyRequestsList({ initialRequests }: MyRequestsListProps)
                       onClick={() => handleDelete(request.id)}
                       className="text-red-600 hover:text-red-700"
                     >
-                      <Trash2 className="h-4 w-4 mr-2" />
+                      <Trash2 className="mr-2 h-4 w-4" />
                       Delete
                     </Button>
                   )}
@@ -265,7 +287,8 @@ export default function MyRequestsList({ initialRequests }: MyRequestsListProps)
                 <Alert>
                   <AlertCircle className="h-4 w-4" />
                   <AlertDescription>
-                    Some sessions have been covered. You can only delete requests with no covered sessions.
+                    Some sessions have been covered. You can only delete
+                    requests with no covered sessions.
                   </AlertDescription>
                 </Alert>
               )}

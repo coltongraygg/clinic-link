@@ -2,13 +2,25 @@
 
 import { useState } from "react";
 import { format, startOfWeek, endOfWeek, addWeeks, subWeeks } from "date-fns";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Calendar,
   List,
@@ -20,7 +32,7 @@ import {
   Clock,
   User,
   AlertCircle,
-  CheckCircle2
+  CheckCircle2,
 } from "lucide-react";
 import { api } from "@/trpc/react";
 import { toast } from "sonner";
@@ -59,7 +71,10 @@ export default function CoverageBoard() {
     clinicName: "",
     supervisor: "all",
   });
-  const [claimDialog, setClaimDialog] = useState<{ open: boolean; sessionId?: string }>({
+  const [claimDialog, setClaimDialog] = useState<{
+    open: boolean;
+    sessionId?: string;
+  }>({
     open: false,
   });
 
@@ -68,20 +83,21 @@ export default function CoverageBoard() {
 
   const utils = api.useUtils();
 
-  const { data: sessions, isLoading } = api.clinicSession.getByDateRange.useQuery({
-    startDate: weekStart,
-    endDate: weekEnd,
-    ...(filters.status === "covered" && { includeOnlyCovered: true }),
-    ...(filters.status === "uncovered" && { includeOnlyUncovered: true }),
-  });
+  const { data: sessions, isLoading } =
+    api.clinicSession.getByDateRange.useQuery({
+      startDate: weekStart,
+      endDate: weekEnd,
+      ...(filters.status === "covered" && { includeOnlyCovered: true }),
+      ...(filters.status === "uncovered" && { includeOnlyUncovered: true }),
+    });
 
   const { data: supervisors } = api.supervisor.getAll.useQuery();
 
   const claimMutation = api.clinicSession.claim.useMutation({
     onSuccess: () => {
       toast.success("Session claimed successfully!");
-      utils.clinicSession.getByDateRange.invalidate();
-      utils.dashboard.getUrgentSessions.invalidate();
+      void utils.clinicSession.getByDateRange.invalidate();
+      void utils.dashboard.getUrgentSessions.invalidate();
       setClaimDialog({ open: false });
     },
     onError: (error) => {
@@ -93,15 +109,24 @@ export default function CoverageBoard() {
   const prevWeek = () => setCurrentWeek(subWeeks(currentWeek, 1));
   const thisWeek = () => setCurrentWeek(new Date());
 
-  const filteredSessions = sessions?.filter((session) => {
-    if (filters.clinicName && !session.clinicName.toLowerCase().includes(filters.clinicName.toLowerCase())) {
-      return false;
-    }
-    if (filters.supervisor !== "all" && session.request.supervisor.id !== filters.supervisor) {
-      return false;
-    }
-    return true;
-  }) || [];
+  const filteredSessions =
+    sessions?.filter((session) => {
+      if (
+        filters.clinicName &&
+        !session.clinicName
+          .toLowerCase()
+          .includes(filters.clinicName.toLowerCase())
+      ) {
+        return false;
+      }
+      if (
+        filters.supervisor !== "all" &&
+        session.request.supervisor.id !== filters.supervisor
+      ) {
+        return false;
+      }
+      return true;
+    }) ?? [];
 
   const handleClaim = (sessionId: string) => {
     setClaimDialog({ open: true, sessionId });
@@ -119,20 +144,26 @@ export default function CoverageBoard() {
       return;
     }
 
-    const csvData = filteredSessions.map(session => ({
+    const csvData = filteredSessions.map((session) => ({
       "Clinic Name": session.clinicName,
-      "Date": format(new Date(session.date), "yyyy-MM-dd"),
+      Date: format(new Date(session.date), "yyyy-MM-dd"),
       "Start Time": format(new Date(session.startTime), "HH:mm"),
       "End Time": format(new Date(session.endTime), "HH:mm"),
-      "Requesting Supervisor": session.request.supervisor.name || session.request.supervisor.email,
-      "Covered By": session.coveredBy?.name || session.coveredBy?.email || "Uncovered",
-      "Status": session.coveredBySupervisorId ? "Covered" : "Uncovered",
-      "Notes": session.notes || "",
+      "Requesting Supervisor":
+        session.request.supervisor.name ?? session.request.supervisor.email,
+      "Covered By":
+        session.coveredBy?.name ?? session.coveredBy?.email ?? "Uncovered",
+      Status: session.coveredBySupervisorId ? "Covered" : "Uncovered",
+      Notes: session.notes ?? "",
     }));
 
     const csv = [
-      Object.keys(csvData[0]).join(","),
-      ...csvData.map(row => Object.values(row).map(val => `"${val}"`).join(","))
+      Object.keys(csvData[0]!).join(","),
+      ...csvData.map((row) =>
+        Object.values(row)
+          .map((val) => `"${val}"`)
+          .join(","),
+      ),
     ].join("\n");
 
     const blob = new Blob([csv], { type: "text/csv" });
@@ -146,21 +177,30 @@ export default function CoverageBoard() {
   };
 
   const SessionCard = ({ session }: { session: Session }) => (
-    <Card className={`${session.coveredBySupervisorId ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'}`}>
+    <Card
+      className={`${session.coveredBySupervisorId ? "border-green-200 bg-green-50" : "border-red-200 bg-red-50"}`}
+    >
       <CardContent className="p-4">
-        <div className="flex justify-between items-start mb-2">
+        <div className="mb-2 flex items-start justify-between">
           <div>
-            <h4 className="font-semibold text-gray-900">{session.clinicName}</h4>
-            <div className="flex items-center gap-2 mt-1">
-              <Badge variant={session.coveredBySupervisorId ? "success" : "destructive"} className="text-xs">
+            <h4 className="font-semibold text-gray-900">
+              {session.clinicName}
+            </h4>
+            <div className="mt-1 flex items-center gap-2">
+              <Badge
+                variant={
+                  session.coveredBySupervisorId ? "success" : "destructive"
+                }
+                className="text-xs"
+              >
                 {session.coveredBySupervisorId ? (
                   <>
-                    <CheckCircle2 className="h-3 w-3 mr-1" />
+                    <CheckCircle2 className="mr-1 h-3 w-3" />
                     Covered
                   </>
                 ) : (
                   <>
-                    <AlertCircle className="h-3 w-3 mr-1" />
+                    <AlertCircle className="mr-1 h-3 w-3" />
                     Uncovered
                   </>
                 )}
@@ -184,19 +224,22 @@ export default function CoverageBoard() {
         <div className="space-y-1 text-sm">
           <div className="flex items-center gap-2 text-gray-600">
             <Clock className="h-3 w-3" />
-            {format(new Date(session.startTime), "h:mm a")} - {format(new Date(session.endTime), "h:mm a")}
+            {format(new Date(session.startTime), "h:mm a")} -{" "}
+            {format(new Date(session.endTime), "h:mm a")}
           </div>
           <div className="flex items-center gap-2 text-gray-600">
             <User className="h-3 w-3" />
-            Requested by {session.request.supervisor.name || session.request.supervisor.email}
+            Requested by{" "}
+            {session.request.supervisor.name ??
+              session.request.supervisor.email}
           </div>
           {session.coveredBy && (
-            <div className="text-green-700 text-xs font-medium">
-              Covered by {session.coveredBy.name || session.coveredBy.email}
+            <div className="text-xs font-medium text-green-700">
+              Covered by {session.coveredBy.name ?? session.coveredBy.email}
             </div>
           )}
           {session.notes && (
-            <div className="text-xs text-gray-500 italic mt-2">
+            <div className="mt-2 text-xs text-gray-500 italic">
               Note: {session.notes}
             </div>
           )}
@@ -206,7 +249,15 @@ export default function CoverageBoard() {
   );
 
   const CalendarView = () => {
-    const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+    const days = [
+      "Monday",
+      "Tuesday",
+      "Wednesday",
+      "Thursday",
+      "Friday",
+      "Saturday",
+      "Sunday",
+    ];
     const weekDays = Array.from({ length: 7 }, (_, i) => {
       const date = new Date(weekStart);
       date.setDate(weekStart.getDate() + i);
@@ -217,21 +268,25 @@ export default function CoverageBoard() {
       <div className="grid grid-cols-7 gap-4">
         {weekDays.map((day, index) => {
           const daySessions = filteredSessions.filter(
-            session => format(new Date(session.date), "yyyy-MM-dd") === format(day, "yyyy-MM-dd")
+            (session) =>
+              format(new Date(session.date), "yyyy-MM-dd") ===
+              format(day, "yyyy-MM-dd"),
           );
 
           return (
             <div key={index} className="space-y-2">
               <div className="text-center">
                 <div className="font-medium text-gray-900">{days[index]}</div>
-                <div className="text-sm text-gray-600">{format(day, "MMM d")}</div>
+                <div className="text-sm text-gray-600">
+                  {format(day, "MMM d")}
+                </div>
               </div>
-              <div className="space-y-2 min-h-[200px]">
-                {daySessions.map(session => (
+              <div className="min-h-[200px] space-y-2">
+                {daySessions.map((session) => (
                   <SessionCard key={session.id} session={session} />
                 ))}
                 {daySessions.length === 0 && (
-                  <div className="text-center text-gray-400 text-sm mt-8">
+                  <div className="mt-8 text-center text-sm text-gray-400">
                     No sessions
                   </div>
                 )}
@@ -246,12 +301,12 @@ export default function CoverageBoard() {
   const ListView = () => (
     <div className="space-y-3">
       {filteredSessions.length === 0 ? (
-        <div className="text-center py-8 text-gray-500">
-          <Calendar className="h-12 w-12 mx-auto mb-3 text-gray-400" />
+        <div className="py-8 text-center text-gray-500">
+          <Calendar className="mx-auto mb-3 h-12 w-12 text-gray-400" />
           <p>No sessions found for the selected week and filters.</p>
         </div>
       ) : (
-        filteredSessions.map(session => (
+        filteredSessions.map((session) => (
           <SessionCard key={session.id} session={session} />
         ))
       )}
@@ -264,26 +319,36 @@ export default function CoverageBoard() {
         {/* Controls */}
         <Card>
           <CardHeader>
-            <div className="flex justify-between items-center">
+            <div className="flex items-center justify-between">
               <div>
-                <CardTitle>Coverage for Week of {format(weekStart, "MMM d, yyyy")}</CardTitle>
+                <CardTitle>
+                  Coverage for Week of {format(weekStart, "MMM d, yyyy")}
+                </CardTitle>
                 <CardDescription>
-                  {filteredSessions.length} session(s) • {filteredSessions.filter(s => !s.coveredBySupervisorId).length} uncovered
+                  {filteredSessions.length} session(s) •{" "}
+                  {
+                    filteredSessions.filter((s) => !s.coveredBySupervisorId)
+                      .length
+                  }{" "}
+                  uncovered
                 </CardDescription>
               </div>
               <div className="flex gap-2">
                 <Button variant="outline" onClick={exportToCSV}>
-                  <Download className="h-4 w-4 mr-2" />
+                  <Download className="mr-2 h-4 w-4" />
                   Export
                 </Button>
-                <Tabs value={view} onValueChange={(v) => setView(v as "list" | "calendar")}>
+                <Tabs
+                  value={view}
+                  onValueChange={(v) => setView(v as "list" | "calendar")}
+                >
                   <TabsList>
                     <TabsTrigger value="list">
-                      <List className="h-4 w-4 mr-2" />
+                      <List className="mr-2 h-4 w-4" />
                       List
                     </TabsTrigger>
                     <TabsTrigger value="calendar">
-                      <Calendar className="h-4 w-4 mr-2" />
+                      <Calendar className="mr-2 h-4 w-4" />
                       Calendar
                     </TabsTrigger>
                   </TabsList>
@@ -293,7 +358,7 @@ export default function CoverageBoard() {
           </CardHeader>
           <CardContent>
             {/* Week Navigation */}
-            <div className="flex justify-between items-center mb-4">
+            <div className="mb-4 flex items-center justify-between">
               <Button variant="outline" onClick={prevWeek}>
                 <ChevronLeft className="h-4 w-4" />
                 Previous Week
@@ -308,10 +373,15 @@ export default function CoverageBoard() {
             </div>
 
             {/* Filters */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
               <div>
                 <Label htmlFor="status">Status</Label>
-                <Select value={filters.status} onValueChange={(value) => setFilters({ ...filters, status: value })}>
+                <Select
+                  value={filters.status}
+                  onValueChange={(value) =>
+                    setFilters({ ...filters, status: value })
+                  }
+                >
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
@@ -325,15 +395,20 @@ export default function CoverageBoard() {
 
               <div>
                 <Label htmlFor="supervisor">Supervisor</Label>
-                <Select value={filters.supervisor} onValueChange={(value) => setFilters({ ...filters, supervisor: value })}>
+                <Select
+                  value={filters.supervisor}
+                  onValueChange={(value) =>
+                    setFilters({ ...filters, supervisor: value })
+                  }
+                >
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All Supervisors</SelectItem>
-                    {supervisors?.map(supervisor => (
+                    {supervisors?.map((supervisor) => (
                       <SelectItem key={supervisor.id} value={supervisor.id}>
-                        {supervisor.name || supervisor.email}
+                        {supervisor.name ?? supervisor.email}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -343,12 +418,14 @@ export default function CoverageBoard() {
               <div>
                 <Label htmlFor="search">Search Clinics</Label>
                 <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                  <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform text-gray-400" />
                   <Input
                     id="search"
                     placeholder="Search clinic names..."
                     value={filters.clinicName}
-                    onChange={(e) => setFilters({ ...filters, clinicName: e.target.value })}
+                    onChange={(e) =>
+                      setFilters({ ...filters, clinicName: e.target.value })
+                    }
                     className="pl-10"
                   />
                 </div>
@@ -357,10 +434,16 @@ export default function CoverageBoard() {
               <div className="flex items-end">
                 <Button
                   variant="outline"
-                  onClick={() => setFilters({ status: "all", clinicName: "", supervisor: "all" })}
+                  onClick={() =>
+                    setFilters({
+                      status: "all",
+                      clinicName: "",
+                      supervisor: "all",
+                    })
+                  }
                   className="w-full"
                 >
-                  <Filter className="h-4 w-4 mr-2" />
+                  <Filter className="mr-2 h-4 w-4" />
                   Clear Filters
                 </Button>
               </div>

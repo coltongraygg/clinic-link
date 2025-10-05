@@ -1,8 +1,4 @@
-import {
-  createTRPCRouter,
-  protectedProcedure,
-} from "@/server/api/trpc";
-import { RequestStatus } from "@prisma/client";
+import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 
 export const dashboardRouter = createTRPCRouter({
   getStats: protectedProcedure.query(async ({ ctx }) => {
@@ -70,9 +66,12 @@ export const dashboardRouter = createTRPCRouter({
       }),
     ]);
 
-    const coverageRate = allSessionsNextWeek > 0
-      ? ((allSessionsNextWeek - uncoveredSessionsNextWeek) / allSessionsNextWeek) * 100
-      : 100;
+    const coverageRate =
+      allSessionsNextWeek > 0
+        ? ((allSessionsNextWeek - uncoveredSessionsNextWeek) /
+            allSessionsNextWeek) *
+          100
+        : 100;
 
     return {
       totalRequests,
@@ -114,16 +113,13 @@ export const dashboardRouter = createTRPCRouter({
           },
         },
       },
-      orderBy: [
-        { date: "asc" },
-        { startTime: "asc" },
-      ],
+      orderBy: [{ date: "asc" }, { startTime: "asc" }],
       take: 10,
     });
 
     // Categorize by urgency
-    const critical = urgentSessions.filter(s => s.date <= tomorrow);
-    const urgent = urgentSessions.filter(s => s.date > tomorrow);
+    const critical = urgentSessions.filter((s) => s.date <= tomorrow);
+    const urgent = urgentSessions.filter((s) => s.date > tomorrow);
 
     return {
       critical,
@@ -163,7 +159,7 @@ export const dashboardRouter = createTRPCRouter({
       take: 20,
     });
 
-    return activities.map(activity => ({
+    return activities.map((activity) => ({
       id: activity.id,
       type: activity.action,
       timestamp: activity.timestamp,
@@ -209,16 +205,21 @@ export const dashboardRouter = createTRPCRouter({
       take: 10,
     });
 
-    return upcomingRequests.map(request => {
+    return upcomingRequests.map((request) => {
       const totalSessions = request.clinicSessions.length;
-      const coveredSessions = request.clinicSessions.filter(s => s.coveredBySupervisorId).length;
+      const coveredSessions = request.clinicSessions.filter(
+        (s) => s.coveredBySupervisorId,
+      ).length;
 
       return {
         ...request,
         coverage: {
           total: totalSessions,
           covered: coveredSessions,
-          percentage: totalSessions > 0 ? Math.round((coveredSessions / totalSessions) * 100) : 0,
+          percentage:
+            totalSessions > 0
+              ? Math.round((coveredSessions / totalSessions) * 100)
+              : 0,
         },
       };
     });

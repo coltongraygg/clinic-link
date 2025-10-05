@@ -14,14 +14,22 @@ import {
 } from "@/components/ui/item";
 import { Calendar, CheckCircle2 } from "lucide-react";
 import { api } from "@/trpc/react";
-import { Empty, EmptyHeader, EmptyMedia, EmptyTitle, EmptyDescription } from "@/components/ui/empty";
+import {
+  Empty,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+  EmptyDescription,
+} from "@/components/ui/empty";
 import { Spinner } from "@/components/ui/spinner";
 
 export default function SimpleRequestsList() {
   const { data: currentUser } = api.supervisor.getCurrentUser.useQuery();
-  const { data: sessions, isLoading } = api.clinicSession.getUncovered.useQuery({
-    limit: 100,
-  });
+  const { data: sessions, isLoading } = api.clinicSession.getUncovered.useQuery(
+    {
+      limit: 100,
+    },
+  );
 
   if (isLoading) {
     return (
@@ -32,9 +40,8 @@ export default function SimpleRequestsList() {
   }
 
   // Filter to only show MY sessions that need coverage
-  const mySessions = sessions?.filter(
-    (s) => s.request.supervisorId === currentUser?.id
-  ) || [];
+  const mySessions =
+    sessions?.filter((s) => s.request.supervisorId === currentUser?.id) ?? [];
 
   // Sort by date
   const sortedSessions = [...mySessions].sort((a, b) => {
@@ -50,7 +57,7 @@ export default function SimpleRequestsList() {
           </EmptyMedia>
           <EmptyTitle>No coverage needed</EmptyTitle>
           <EmptyDescription>
-            You don't have any sessions needing coverage
+            You don&apos;t have any sessions needing coverage
           </EmptyDescription>
         </EmptyHeader>
       </Empty>

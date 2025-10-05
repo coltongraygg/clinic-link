@@ -1,18 +1,19 @@
 import { z } from "zod";
-import {
-  createTRPCRouter,
-  protectedProcedure,
-} from "@/server/api/trpc";
+import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 import { NotificationType } from "@prisma/client";
 import { TRPCError } from "@trpc/server";
+import type { PrismaClient, Prisma } from "@prisma/client";
 
 const createNotification = async (
-  db: any,
+  db: Omit<
+    PrismaClient,
+    "$connect" | "$disconnect" | "$on" | "$transaction" | "$extends"
+  >,
   userId: string,
   type: NotificationType,
   title: string,
   message: string,
-  data?: any
+  data?: Prisma.InputJsonValue,
 ) => {
   return await db.notification.create({
     data: {
@@ -28,15 +29,17 @@ const createNotification = async (
 export const clinicSessionRouter = createTRPCRouter({
   getUncovered: protectedProcedure
     .input(
-      z.object({
-        startDate: z.date().optional(),
-        endDate: z.date().optional(),
-        clinicName: z.string().optional(),
-        limit: z.number().min(1).max(100).default(50),
-      }).optional()
+      z
+        .object({
+          startDate: z.date().optional(),
+          endDate: z.date().optional(),
+          clinicName: z.string().optional(),
+          limit: z.number().min(1).max(100).default(50),
+        })
+        .optional(),
     )
     .query(async ({ ctx, input }) => {
-      const where: any = {
+      const where: Prisma.ClinicSessionWhereInput = {
         coveredBySupervisorId: null,
       };
 
@@ -72,11 +75,8 @@ export const clinicSessionRouter = createTRPCRouter({
             },
           },
         },
-        orderBy: [
-          { date: "asc" },
-          { startTime: "asc" },
-        ],
-        take: input?.limit || 50,
+        orderBy: [{ date: "asc" }, { startTime: "asc" }],
+        take: input?.limit ?? 50,
       });
 
       return sessions;
@@ -86,7 +86,7 @@ export const clinicSessionRouter = createTRPCRouter({
     .input(
       z.object({
         sessionId: z.string(),
-      })
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       // Start a transaction to ensure atomicity
@@ -150,7 +150,7 @@ export const clinicSessionRouter = createTRPCRouter({
           NotificationType.SESSION_CLAIMED,
           "Session Covered",
           `${ctx.session.user.name} has covered your ${session.clinicName} session on ${session.date.toLocaleDateString()}`,
-          { sessionId: session.id, requestId: session.requestId }
+          { sessionId: session.id, requestId: session.requestId },
         );
 
         // Check if all sessions for this request are now covered
@@ -158,7 +158,9 @@ export const clinicSessionRouter = createTRPCRouter({
           where: { requestId: session.requestId },
         });
 
-        const allCovered = allSessions.every(s => s.coveredBySupervisorId !== null);
+        const allCovered = allSessions.every(
+          (s) => s.coveredBySupervisorId !== null,
+        );
 
         if (allCovered) {
           await createNotification(
@@ -167,7 +169,7 @@ export const clinicSessionRouter = createTRPCRouter({
             NotificationType.REQUEST_COVERED,
             "All Sessions Covered",
             "All sessions for your time off request have been covered!",
-            { requestId: session.requestId }
+            { requestId: session.requestId },
           );
         }
 
@@ -181,7 +183,7 @@ export const clinicSessionRouter = createTRPCRouter({
     .input(
       z.object({
         sessionId: z.string(),
-      })
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       const session = await ctx.db.clinicSession.findUnique({
@@ -196,8 +198,10 @@ export const clinicSessionRouter = createTRPCRouter({
       }
 
       // Only allow release by the covering supervisor or admin
-      if (session.coveredBySupervisorId !== ctx.session.user.id &&
-          ctx.session.user.role !== "ADMIN") {
+      if (
+        session.coveredBySupervisorId !== ctx.session.user.id &&
+        ctx.session.user.role !== "ADMIN"
+      ) {
         throw new TRPCError({
           code: "UNAUTHORIZED",
           message: "You can only release sessions you are covering",
@@ -230,10 +234,10 @@ export const clinicSessionRouter = createTRPCRouter({
         endDate: z.date(),
         includeOnlyCovered: z.boolean().optional(),
         includeOnlyUncovered: z.boolean().optional(),
-      })
+      }),
     )
     .query(async ({ ctx, input }) => {
-      const where: any = {
+      const where: Prisma.ClinicSessionWhereInput = {
         date: {
           gte: input.startDate,
           lte: input.endDate,
@@ -270,10 +274,7 @@ export const clinicSessionRouter = createTRPCRouter({
             },
           },
         },
-        orderBy: [
-          { date: "asc" },
-          { startTime: "asc" },
-        ],
+        orderBy: [{ date: "asc" }, { startTime: "asc" }],
       });
 
       return sessions;
@@ -281,16 +282,18 @@ export const clinicSessionRouter = createTRPCRouter({
 
   getUpcoming: protectedProcedure
     .input(
-      z.object({
-        days: z.number().min(1).max(30).default(7),
-        onlyMySessions: z.boolean().optional(),
-      }).optional()
+      z
+        .object({
+          days: z.number().min(1).max(30).default(7),
+          onlyMySessions: z.boolean().optional(),
+        })
+        .optional(),
     )
     .query(async ({ ctx, input }) => {
       const endDate = new Date();
-      endDate.setDate(endDate.getDate() + (input?.days || 7));
+      endDate.setDate(endDate.getDate() + (input?.days ?? 7));
 
-      const where: any = {
+      const where: Prisma.ClinicSessionWhereInput = {
         date: {
           gte: new Date(),
           lte: endDate,
@@ -328,10 +331,7 @@ export const clinicSessionRouter = createTRPCRouter({
             },
           },
         },
-        orderBy: [
-          { date: "asc" },
-          { startTime: "asc" },
-        ],
+        orderBy: [{ date: "asc" }, { startTime: "asc" }],
       });
 
       return sessions;
@@ -341,7 +341,7 @@ export const clinicSessionRouter = createTRPCRouter({
     .input(
       z.object({
         search: z.string().min(1).max(50),
-      })
+      }),
     )
     .query(async ({ ctx, input }) => {
       const clinicNames = await ctx.db.clinicSession.findMany({
@@ -357,7 +357,7 @@ export const clinicSessionRouter = createTRPCRouter({
         take: 10,
       });
 
-      return clinicNames.map(c => c.clinicName);
+      return clinicNames.map((c) => c.clinicName);
     }),
 
   getMyCoverage: protectedProcedure.query(async ({ ctx }) => {
@@ -382,10 +382,7 @@ export const clinicSessionRouter = createTRPCRouter({
           },
         },
       },
-      orderBy: [
-        { date: "asc" },
-        { startTime: "asc" },
-      ],
+      orderBy: [{ date: "asc" }, { startTime: "asc" }],
     });
 
     return sessions;

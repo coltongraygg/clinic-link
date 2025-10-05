@@ -46,11 +46,13 @@ export function ConfirmationDialog({
           <AlertDialogAction
             onClick={onConfirm}
             disabled={loading}
-            className={variant === "destructive" ? "bg-red-600 hover:bg-red-700" : ""}
+            className={
+              variant === "destructive" ? "bg-red-600 hover:bg-red-700" : ""
+            }
           >
             {loading ? (
               <>
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
+                <div className="mr-2 h-4 w-4 animate-spin rounded-full border-b-2 border-white" />
                 Loading...
               </>
             ) : (

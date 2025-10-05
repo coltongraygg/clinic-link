@@ -14,23 +14,18 @@ import {
   ItemDescription,
   ItemActions,
 } from "@/components/ui/item";
-import {
-  Plus,
-  Clock,
-  Calendar,
-  AlertTriangle,
-  CheckCircle2,
-  AlertCircle,
-  FileText,
-} from "lucide-react";
+import { Calendar, AlertTriangle, CheckCircle2 } from "lucide-react";
 import { api } from "@/trpc/react";
 import { toast } from "sonner";
 import { ConfirmationDialog } from "@/components/common/confirmation-dialog";
-import { useRouter } from "next/navigation";
-import Link from "next/link";
 import { Spinner } from "@/components/ui/spinner";
-import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
-import { Separator } from "@/components/ui/separator";
+import {
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@/components/ui/empty";
 
 interface Session {
   id: string;
@@ -58,37 +53,23 @@ interface Session {
   } | null;
 }
 
-interface Activity {
-  id: string;
-  type: string;
-  timestamp: Date;
-  supervisor: {
-    name: string | null;
-    email: string | null;
-    image: string | null;
-  };
-  session: {
-    id: string;
-    clinicName: string;
-    date: Date;
-    requestingSupervisor: {
-      name: string | null;
-    };
-  };
-}
-
 export default function UnifiedCoverageBoard() {
-  const [claimDialog, setClaimDialog] = useState<{ open: boolean; sessionId?: string }>({
+  const [claimDialog, setClaimDialog] = useState<{
+    open: boolean;
+    sessionId?: string;
+  }>({
     open: false,
   });
-
-  const utils = api.useUtils();
 
   // Get current user session
   const { data: currentUser } = api.supervisor.getCurrentUser.useQuery();
 
   // Get uncovered sessions only
-  const { data: sessions, isLoading: sessionsLoading, refetch: refetchSessions } = api.clinicSession.getUncovered.useQuery({
+  const {
+    data: sessions,
+    isLoading: sessionsLoading,
+    refetch: refetchSessions,
+  } = api.clinicSession.getUncovered.useQuery({
     limit: 50,
   });
 
@@ -113,7 +94,13 @@ export default function UnifiedCoverageBoard() {
     }
   };
 
-  const SessionItem = ({ session, variant = "default" }: { session: Session; variant?: "mine" | "urgent" | "default" }) => {
+  const SessionItem = ({
+    session,
+    variant = "default",
+  }: {
+    session: Session;
+    variant?: "mine" | "urgent" | "default";
+  }) => {
     const isUrgent = variant === "urgent";
     const isMine = variant === "mine";
 
@@ -137,15 +124,18 @@ export default function UnifiedCoverageBoard() {
             )}
             {isUrgent && (
               <Badge variant="destructive" className="ml-2">
-                <AlertTriangle className="h-3 w-3 mr-1" />
+                <AlertTriangle className="mr-1 h-3 w-3" />
                 Urgent
               </Badge>
             )}
           </ItemTitle>
 
           <ItemDescription>
-            {format(new Date(session.date), "MMM d, yyyy")} • {format(new Date(session.startTime), "h:mm a")} - {format(new Date(session.endTime), "h:mm a")}
-            {!isMine && ` • ${session.request.supervisor.name || session.request.supervisor.email}`}
+            {format(new Date(session.date), "MMM d, yyyy")} •{" "}
+            {format(new Date(session.startTime), "h:mm a")} -{" "}
+            {format(new Date(session.endTime), "h:mm a")}
+            {!isMine &&
+              ` • ${session.request.supervisor.name ?? session.request.supervisor.email}`}
             {session.notes && ` • ${session.notes}`}
           </ItemDescription>
         </ItemContent>
@@ -174,7 +164,7 @@ export default function UnifiedCoverageBoard() {
   }
 
   // Sort all sessions by date
-  const allSessions = [...(sessions || [])].sort((a, b) => {
+  const allSessions = [...(sessions ?? [])].sort((a, b) => {
     const dateA = new Date(a.date).getTime();
     const dateB = new Date(b.date).getTime();
     return dateA - dateB;
@@ -188,13 +178,17 @@ export default function UnifiedCoverageBoard() {
             <ItemGroup>
               {allSessions.map((session, index) => {
                 const isMine = session.request.supervisorId === currentUser?.id;
-                const isUrgent = new Date(session.date).getTime() - new Date().getTime() <= 48 * 60 * 60 * 1000;
+                const isUrgent =
+                  new Date(session.date).getTime() - new Date().getTime() <=
+                  48 * 60 * 60 * 1000;
 
                 return (
                   <Fragment key={session.id}>
                     <SessionItem
                       session={session}
-                      variant={isMine ? "mine" : isUrgent ? "urgent" : "default"}
+                      variant={
+                        isMine ? "mine" : isUrgent ? "urgent" : "default"
+                      }
                     />
                     {index < allSessions.length - 1 && <ItemSeparator />}
                   </Fragment>

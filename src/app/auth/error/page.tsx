@@ -1,7 +1,13 @@
 "use client";
 
 import { useSearchParams } from "next/navigation";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { AlertCircle } from "lucide-react";
 import Link from "next/link";
@@ -24,20 +30,23 @@ export default function AuthErrorPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-red-50 to-orange-100">
+    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-red-50 to-orange-100">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <div className="flex justify-center mb-4">
+          <div className="mb-4 flex justify-center">
             <AlertCircle className="h-16 w-16 text-red-500" />
           </div>
-          <CardTitle className="text-2xl font-bold text-red-900">Authentication Error</CardTitle>
+          <CardTitle className="text-2xl font-bold text-red-900">
+            Authentication Error
+          </CardTitle>
           <CardDescription className="text-red-700">
             {getErrorMessage()}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="text-sm text-center text-muted-foreground">
-            If you believe you should have access, please contact your system administrator.
+          <div className="text-muted-foreground text-center text-sm">
+            If you believe you should have access, please contact your system
+            administrator.
           </div>
           <div className="flex flex-col gap-2">
             <Link href="/auth/signin">
