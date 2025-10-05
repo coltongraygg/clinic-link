@@ -1,0 +1,100 @@
+"use client";
+
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Clock, ArrowRight, ArrowLeft } from "lucide-react";
+import { format, formatDistanceToNow } from "date-fns";
+import { api } from "@/trpc/react";
+
+export default function RecentActivitySection() {
+  const { data: activities, isLoading } = api.dashboard.getRecentActivity.useQuery();
+
+  if (isLoading) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Recent Activity</CardTitle>
+          <CardDescription>Latest coverage actions</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-3">
+            {[...Array(5)].map((_, i) => (
+              <div key={i} className="animate-pulse">
+                <div className="flex items-center gap-3">
+                  <div className="h-10 w-10 bg-gray-200 rounded-full" />
+                  <div className="flex-1 space-y-2">
+                    <div className="h-4 bg-gray-200 rounded w-3/4" />
+                    <div className="h-3 bg-gray-200 rounded w-1/2" />
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Recent Activity</CardTitle>
+        <CardDescription>Latest coverage actions</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <ScrollArea className="h-[400px]">
+          <div className="space-y-4">
+            {activities && activities.length > 0 ? (
+              activities.map((activity) => (
+                <div key={activity.id} className="flex items-start gap-3 pb-3 border-b last:border-0">
+                  <Avatar className="h-10 w-10">
+                    <AvatarImage src={activity.supervisor.image || undefined} />
+                    <AvatarFallback>
+                      {activity.supervisor.name?.charAt(0) || activity.supervisor.email?.charAt(0)}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="flex-1 space-y-1">
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium text-sm">
+                        {activity.supervisor.name || activity.supervisor.email}
+                      </span>
+                      <Badge variant={activity.type === "CLAIMED" ? "success" : "secondary"} className="text-xs">
+                        {activity.type === "CLAIMED" ? (
+                          <>
+                            <ArrowRight className="h-3 w-3 mr-1" />
+                            Claimed
+                          </>
+                        ) : (
+                          <>
+                            <ArrowLeft className="h-3 w-3 mr-1" />
+                            Released
+                          </>
+                        )}
+                      </Badge>
+                    </div>
+                    <p className="text-sm text-gray-600">
+                      {activity.session.clinicName} on {format(new Date(activity.session.date), "MMM d")}
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      Requested by {activity.session.requestingSupervisor.name}
+                    </p>
+                    <div className="flex items-center gap-1 text-xs text-gray-400">
+                      <Clock className="h-3 w-3" />
+                      {formatDistanceToNow(new Date(activity.timestamp), { addSuffix: true })}
+                    </div>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="text-center py-8 text-gray-500">
+                <p>No recent activity</p>
+              </div>
+            )}
+          </div>
+        </ScrollArea>
+      </CardContent>
+    </Card>
+  );
+}
