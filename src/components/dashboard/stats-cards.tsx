@@ -1,5 +1,10 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { FileText, CheckCircle2, AlertCircle, TrendingUp } from "lucide-react";
+import {
+  DocumentTextIcon,
+  CheckCircleIcon,
+  ExclamationCircleIcon,
+  ArrowTrendingUpIcon,
+} from "@heroicons/react/24/solid";
 
 interface StatsCardsProps {
   stats: {
@@ -20,7 +25,7 @@ export default function StatsCards({ stats }: StatsCardsProps) {
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium">Coverage Rate</CardTitle>
-          <TrendingUp className="text-muted-foreground h-4 w-4" />
+          <ArrowTrendingUpIcon className="text-muted-foreground h-4 w-4" />
         </CardHeader>
         <CardContent>
           <div className="text-2xl font-bold">{stats.coverageRate}%</div>
@@ -33,7 +38,7 @@ export default function StatsCards({ stats }: StatsCardsProps) {
           <CardTitle className="text-sm font-medium">
             Uncovered Sessions
           </CardTitle>
-          <AlertCircle className="text-muted-foreground h-4 w-4" />
+          <ExclamationCircleIcon className="text-muted-foreground h-4 w-4" />
         </CardHeader>
         <CardContent>
           <div className="text-2xl font-bold">
@@ -46,7 +51,7 @@ export default function StatsCards({ stats }: StatsCardsProps) {
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium">My Coverage</CardTitle>
-          <CheckCircle2 className="text-muted-foreground h-4 w-4" />
+          <CheckCircleIcon className="text-muted-foreground h-4 w-4" />
         </CardHeader>
         <CardContent>
           <div className="text-2xl font-bold">{stats.myCoveredSessions}</div>
@@ -57,7 +62,7 @@ export default function StatsCards({ stats }: StatsCardsProps) {
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium">My Requests</CardTitle>
-          <FileText className="text-muted-foreground h-4 w-4" />
+          <DocumentTextIcon className="text-muted-foreground h-4 w-4" />
         </CardHeader>
         <CardContent>
           <div className="text-2xl font-bold">{stats.myRequests}</div>

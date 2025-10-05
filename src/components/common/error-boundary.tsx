@@ -9,7 +9,10 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { AlertTriangle, RefreshCw } from "lucide-react";
+import {
+  ExclamationTriangleIcon,
+  ArrowPathIcon,
+} from "@heroicons/react/24/solid";
 
 interface ErrorBoundaryState {
   hasError: boolean;
@@ -68,7 +71,7 @@ function DefaultErrorFallback({
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <div className="mb-4 flex justify-center">
-            <AlertTriangle className="h-16 w-16 text-red-500" />
+            <ExclamationTriangleIcon className="h-16 w-16 text-red-500" />
           </div>
           <CardTitle className="text-xl font-bold text-red-900">
             Something went wrong
@@ -90,7 +93,7 @@ function DefaultErrorFallback({
           </div>
           <div className="flex gap-2">
             <Button onClick={reset} className="flex-1">
-              <RefreshCw className="mr-2 h-4 w-4" />
+              <ArrowPathIcon className="mr-2 h-4 w-4" />
               Try Again
             </Button>
             <Button

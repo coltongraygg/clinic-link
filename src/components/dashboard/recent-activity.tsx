@@ -10,7 +10,11 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Clock, ArrowRight, ArrowLeft } from "lucide-react";
+import {
+  ClockIcon,
+  ArrowRightIcon,
+  ArrowLeftIcon,
+} from "@heroicons/react/24/solid";
 import { format, formatDistanceToNow } from "date-fns";
 import { api } from "@/trpc/react";
 
@@ -79,12 +83,12 @@ export default function RecentActivitySection() {
                       >
                         {activity.type === "CLAIMED" ? (
                           <>
-                            <ArrowRight className="mr-1 h-3 w-3" />
+                            <ArrowRightIcon className="mr-1 h-3 w-3" />
                             Claimed
                           </>
                         ) : (
                           <>
-                            <ArrowLeft className="mr-1 h-3 w-3" />
+                            <ArrowLeftIcon className="mr-1 h-3 w-3" />
                             Released
                           </>
                         )}
@@ -98,7 +102,7 @@ export default function RecentActivitySection() {
                       Requested by {activity.session.requestingSupervisor.name}
                     </p>
                     <div className="flex items-center gap-1 text-xs text-gray-400">
-                      <Clock className="h-3 w-3" />
+                      <ClockIcon className="h-3 w-3" />
                       {formatDistanceToNow(new Date(activity.timestamp), {
                         addSuffix: true,
                       })}

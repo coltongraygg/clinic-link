@@ -11,17 +11,17 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
-  AlertTriangle,
-  Clock,
-  User,
-  ArrowRight,
-  CheckCircle2,
-} from "lucide-react";
+  ExclamationTriangleIcon,
+  ClockIcon,
+  UserIcon,
+  ArrowRightIcon,
+  CheckCircleIcon,
+  ExclamationCircleIcon,
+} from "@heroicons/react/24/solid";
 import { format } from "date-fns";
 import { useRouter } from "next/navigation";
 import { api } from "@/trpc/react";
 import { toast } from "sonner";
-import { AlertCircle } from "lucide-react";
 
 interface UrgentSession {
   id: string;
@@ -87,7 +87,7 @@ export default function UrgentCoverageSection({
               variant={isCritical ? "destructive" : "secondary"}
               className="text-xs"
             >
-              <AlertTriangle className="mr-1 h-3 w-3" />
+              <ExclamationTriangleIcon className="mr-1 h-3 w-3" />
               {isCritical ? "Critical" : "Urgent"}
             </Badge>
             <span className="text-xs text-gray-600">
@@ -106,12 +106,12 @@ export default function UrgentCoverageSection({
 
       <div className="space-y-1 text-sm">
         <div className="flex items-center gap-2 text-gray-600">
-          <Clock className="h-3 w-3" />
+          <ClockIcon className="h-3 w-3" />
           {format(new Date(session.startTime), "h:mm a")} -{" "}
           {format(new Date(session.endTime), "h:mm a")}
         </div>
         <div className="flex items-center gap-2 text-gray-600">
-          <User className="h-3 w-3" />
+          <UserIcon className="h-3 w-3" />
           {session.request.supervisor.name ?? session.request.supervisor.email}
         </div>
         {session.notes && (
@@ -127,7 +127,7 @@ export default function UrgentCoverageSection({
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <AlertCircle className="h-5 w-5 text-orange-500" />
+          <ExclamationCircleIcon className="h-5 w-5 text-orange-500" />
           Urgent Coverage Needs
         </CardTitle>
         <CardDescription>
@@ -137,7 +137,7 @@ export default function UrgentCoverageSection({
       <CardContent>
         {urgentSessions.total === 0 ? (
           <div className="py-8 text-center text-gray-500">
-            <CheckCircle2 className="mx-auto mb-3 h-12 w-12 text-green-500" />
+            <CheckCircleIcon className="mx-auto mb-3 h-12 w-12 text-green-500" />
             <p>All sessions are covered for the next week!</p>
           </div>
         ) : (
@@ -166,7 +166,7 @@ export default function UrgentCoverageSection({
               onClick={() => router.push("/coverage")}
             >
               View All Uncovered Sessions
-              <ArrowRight className="ml-2 h-4 w-4" />
+              <ArrowRightIcon className="ml-2 h-4 w-4" />
             </Button>
           </>
         )}

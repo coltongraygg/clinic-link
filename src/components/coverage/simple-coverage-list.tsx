@@ -14,7 +14,7 @@ import {
   ItemDescription,
   ItemActions,
 } from "@/components/ui/item";
-import { Calendar, CheckCircle2 } from "lucide-react";
+import { CalendarIcon, CheckCircleIcon } from "@heroicons/react/24/solid";
 import { api } from "@/trpc/react";
 import {
   Empty,
@@ -82,7 +82,7 @@ export default function SimpleCoverageList() {
       <Empty>
         <EmptyHeader>
           <EmptyMedia variant="icon">
-            <CheckCircle2 />
+            <CheckCircleIcon />
           </EmptyMedia>
           <EmptyTitle>No upcoming sessions</EmptyTitle>
           <EmptyDescription>
@@ -104,7 +104,7 @@ export default function SimpleCoverageList() {
             <Fragment key={session.id}>
               <Item variant="outline" size="sm">
                 <ItemMedia variant="icon">
-                  <Calendar className="h-4 w-4" />
+                  <CalendarIcon className="h-4 w-4" />
                 </ItemMedia>
 
                 <ItemContent>
@@ -112,7 +112,7 @@ export default function SimpleCoverageList() {
                     {session.clinicName}
                     {isCovered && (
                       <Badge variant="outline" className="ml-2">
-                        <CheckCircle2 className="mr-1 h-3 w-3" />
+                        <CheckCircleIcon className="mr-1 h-3 w-3" />
                         Covered
                       </Badge>
                     )}

@@ -189,7 +189,56 @@
     @apply border-border outline-ring/50;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground text-base;
     letter-spacing: var(--tracking-normal);
   }
+
+  /* Increase base text sizes */
+  html {
+    font-size: 16px;
+  }
+
+  @media (max-width: 768px) {
+    html {
+      font-size: 17px;
+    }
+  }
+}
+
+/* Faster spinner animation */
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin {
+  animation: spin 0.6s linear infinite;
+}
+
+/* Toast styles */
+[data-sonner-toast] {
+  border-radius: var(--radius-lg) !important;
+  border: 2px solid hsl(var(--border)) !important;
+  box-shadow: var(--shadow-lg) !important;
+  background: hsl(var(--popover)) !important;
+}
+
+[data-sonner-toast][data-type="success"] {
+  border-color: hsl(var(--primary)) !important;
+  background: hsl(var(--popover)) !important;
+  color: hsl(var(--popover-foreground)) !important;
+}
+
+[data-sonner-toast][data-type="error"] {
+  border-color: hsl(var(--destructive)) !important;
+  background: hsl(var(--popover)) !important;
+  color: hsl(var(--popover-foreground)) !important;
+}
+
+[data-sonner-toast][data-type="info"],
+[data-sonner-toast][data-type="warning"] {
+  border-color: hsl(var(--border)) !important;
+  background: hsl(var(--popover)) !important;
+  color: hsl(var(--popover-foreground)) !important;
 }

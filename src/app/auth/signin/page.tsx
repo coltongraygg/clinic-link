@@ -17,8 +17,35 @@ export default function SignInPage() {
 
   const handleGoogleSignIn = async () => {
     setIsLoading(true);
+
     try {
-      await signIn("google", { callbackUrl: "/dashboard" });
+      // Calculate centered position for popup
+      const width = 500;
+      const height = 600;
+      const left = window.screenX + (window.outerWidth - width) / 2;
+      const top = window.screenY + (window.outerHeight - height) / 2;
+
+      // Open popup to Google sign-in page
+      const popup = window.open(
+        "/auth/google-signin",
+        "oauth-signin",
+        `width=${width},height=${height},left=${left},top=${top}`,
+      );
+
+      if (!popup) {
+        // Popup blocked, fallback to redirect
+        await signIn("google", { callbackUrl: "/dashboard" });
+        return;
+      }
+
+      // Check if popup was closed
+      const checkClosed = setInterval(() => {
+        if (popup.closed) {
+          clearInterval(checkClosed);
+          // Redirect to dashboard after popup closes
+          window.location.href = "/dashboard";
+        }
+      }, 500);
     } catch (error) {
       console.error("Sign in error:", error);
       setIsLoading(false);
@@ -27,7 +54,7 @@ export default function SignInPage() {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
-      <Card className="w-full max-w-md">
+      <Card className="bg-card/95 supports-[backdrop-filter]:bg-card/60 w-full max-w-md backdrop-blur">
         <CardHeader className="text-center">
           <div className="mb-4 flex justify-center">
             <Image
@@ -46,19 +73,17 @@ export default function SignInPage() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="text-muted-foreground text-center text-sm">
-            Access restricted to authorized supervisors only
-          </div>
           <Button
             onClick={handleGoogleSignIn}
             disabled={isLoading}
             className="w-full"
+            variant="outline"
             size="lg"
           >
             {isLoading ? (
               <span className="flex items-center">
                 <svg
-                  className="mr-3 -ml-1 h-5 w-5 animate-spin text-white"
+                  className="mr-3 -ml-1 h-5 w-5 animate-spin"
                   xmlns="http://www.w3.org/2000/svg"
                   fill="none"
                   viewBox="0 0 24 24"

@@ -1,9 +1,7 @@
 "use client";
 
-import { Bell } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
 import {
   Popover,
   PopoverContent,
@@ -11,16 +9,10 @@ import {
 } from "@/components/ui/popover";
 import { api } from "@/trpc/react";
 import { signOut } from "next-auth/react";
+import Image from "next/image";
 
 export function TopBar() {
   const { data: currentUser } = api.supervisor.getCurrentUser.useQuery();
-  const { data: unreadCount } = api.notification.getUnreadCount.useQuery(
-    undefined,
-    {
-      retry: false,
-      refetchOnWindowFocus: false,
-    },
-  );
 
   const initials =
     currentUser?.name
@@ -33,23 +25,17 @@ export function TopBar() {
     <header className="bg-card/95 supports-[backdrop-filter]:bg-card/60 sticky top-0 z-50 w-full border-b backdrop-blur">
       <div className="container mx-auto flex h-14 max-w-7xl items-center justify-between px-4">
         <div className="flex items-center gap-2">
-          <h1 className="text-lg font-semibold">Clinic Link</h1>
+          <Image
+            src="/clinic-link-logo.png"
+            alt="Clinic Link"
+            width={120}
+            height={120}
+            className="h-10 w-auto"
+            priority
+          />
         </div>
 
         <div className="flex items-center gap-2">
-          {/* Notifications */}
-          <Button variant="ghost" size="icon" className="relative">
-            <Bell className="h-5 w-5" />
-            {unreadCount && unreadCount > 0 && (
-              <Badge
-                variant="destructive"
-                className="absolute -top-1 -right-1 h-5 w-5 rounded-full p-0 text-xs"
-              >
-                {unreadCount > 9 ? "9+" : unreadCount}
-              </Badge>
-            )}
-          </Button>
-
           {/* Profile Menu */}
           <Popover>
             <PopoverTrigger asChild>

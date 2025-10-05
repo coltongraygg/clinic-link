@@ -12,7 +12,7 @@ import {
   ItemTitle,
   ItemDescription,
 } from "@/components/ui/item";
-import { Calendar, CheckCircle2 } from "lucide-react";
+import { CalendarIcon, CheckCircleIcon } from "@heroicons/react/24/solid";
 import { api } from "@/trpc/react";
 import {
   Empty,
@@ -53,7 +53,7 @@ export default function SimpleRequestsList() {
       <Empty>
         <EmptyHeader>
           <EmptyMedia variant="icon">
-            <CheckCircle2 />
+            <CheckCircleIcon />
           </EmptyMedia>
           <EmptyTitle>No coverage needed</EmptyTitle>
           <EmptyDescription>
@@ -70,7 +70,7 @@ export default function SimpleRequestsList() {
         <Fragment key={session.id}>
           <Item variant="outline" size="sm">
             <ItemMedia variant="icon">
-              <Calendar className="h-4 w-4" />
+              <CalendarIcon className="h-4 w-4" />
             </ItemMedia>
 
             <ItemContent>

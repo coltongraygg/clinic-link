@@ -14,14 +14,14 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
-  Calendar,
-  Clock,
-  CheckCircle2,
-  AlertCircle,
-  Trash2,
-  Eye,
-  Plus,
-} from "lucide-react";
+  CalendarIcon,
+  ClockIcon,
+  CheckCircleIcon,
+  ExclamationCircleIcon,
+  TrashIcon,
+  EyeIcon,
+  PlusIcon,
+} from "@heroicons/react/24/solid";
 import { api } from "@/trpc/react";
 import { toast } from "sonner";
 import { ConfirmationDialog } from "@/components/common/confirmation-dialog";
@@ -129,7 +129,7 @@ export default function MyRequestsList() {
   if (!requests || requests.length === 0) {
     return (
       <div className="py-12 text-center">
-        <Calendar className="mx-auto mb-4 h-16 w-16 text-gray-400" />
+        <CalendarIcon className="mx-auto mb-4 h-16 w-16 text-gray-400" />
         <h3 className="mb-2 text-lg font-medium text-gray-900">
           No coverage requests
         </h3>
@@ -138,7 +138,7 @@ export default function MyRequestsList() {
         </p>
         <Link href="/request">
           <Button>
-            <Plus className="mr-2 h-4 w-4" />
+            <PlusIcon className="mr-2 h-4 w-4" />
             Create First Request
           </Button>
         </Link>
@@ -196,7 +196,7 @@ export default function MyRequestsList() {
               {/* Sessions */}
               <div>
                 <h4 className="mb-3 flex items-center font-medium">
-                  <Clock className="mr-2 h-4 w-4" />
+                  <ClockIcon className="mr-2 h-4 w-4" />
                   Sessions ({request.clinicSessions.length})
                 </h4>
                 <div className="grid gap-3">
@@ -228,7 +228,7 @@ export default function MyRequestsList() {
                         <div className="flex items-center gap-2">
                           {session.coveredBySupervisorId ? (
                             <div className="flex items-center text-green-700">
-                              <CheckCircle2 className="mr-1 h-4 w-4" />
+                              <CheckCircleIcon className="mr-1 h-4 w-4" />
                               <span className="text-sm">
                                 Covered by{" "}
                                 {session.coveredBy?.name ??
@@ -237,7 +237,7 @@ export default function MyRequestsList() {
                             </div>
                           ) : (
                             <div className="flex items-center text-red-700">
-                              <AlertCircle className="mr-1 h-4 w-4" />
+                              <ExclamationCircleIcon className="mr-1 h-4 w-4" />
                               <span className="text-sm">Needs coverage</span>
                             </div>
                           )}
@@ -266,7 +266,7 @@ export default function MyRequestsList() {
                 </div>
                 <div className="flex gap-2">
                   <Button variant="outline" size="sm">
-                    <Eye className="mr-2 h-4 w-4" />
+                    <EyeIcon className="mr-2 h-4 w-4" />
                     View Details
                   </Button>
                   {canDelete(request) && (
@@ -276,7 +276,7 @@ export default function MyRequestsList() {
                       onClick={() => handleDelete(request.id)}
                       className="text-red-600 hover:text-red-700"
                     >
-                      <Trash2 className="mr-2 h-4 w-4" />
+                      <TrashIcon className="mr-2 h-4 w-4" />
                       Delete
                     </Button>
                   )}
@@ -285,7 +285,7 @@ export default function MyRequestsList() {
 
               {request.coverageProgress.covered > 0 && canDelete(request) && (
                 <Alert>
-                  <AlertCircle className="h-4 w-4" />
+                  <ExclamationCircleIcon className="h-4 w-4" />
                   <AlertDescription>
                     Some sessions have been covered. You can only delete
                     requests with no covered sessions.

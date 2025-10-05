@@ -2,82 +2,65 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, ListChecks, Grid3x3, Plus } from "lucide-react";
+import {
+  HomeIcon,
+  PlusCircleIcon,
+  Squares2X2Icon,
+} from "@heroicons/react/24/solid";
 import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
 
 export function BottomNav() {
   const pathname = usePathname();
 
   return (
     <nav className="bg-card/95 supports-[backdrop-filter]:bg-card/60 fixed right-0 bottom-0 left-0 z-40 border-t backdrop-blur md:hidden">
-      <div className="relative flex h-16 items-center justify-around">
-        {/* Left nav items */}
+      <div className="flex h-16 items-center justify-around px-2">
         <Link
           href="/dashboard"
           className={cn(
-            "flex h-full flex-1 flex-col items-center justify-center gap-1 transition-colors",
+            "relative flex flex-1 flex-col items-center justify-center gap-1 rounded-xl px-4 py-2 transition-all active:scale-95",
             pathname === "/dashboard"
               ? "text-primary"
-              : "text-muted-foreground hover:text-foreground",
+              : "text-muted-foreground active:bg-accent/50",
           )}
         >
-          <Home
-            className={cn(
-              "h-5 w-5",
-              pathname === "/dashboard" && "fill-primary/20",
-            )}
-          />
-          <span className="text-xs font-medium">Home</span>
-        </Link>
-
-        <Link
-          href="/my-requests"
-          className={cn(
-            "flex h-full flex-1 flex-col items-center justify-center gap-1 transition-colors",
-            pathname === "/my-requests"
-              ? "text-primary"
-              : "text-muted-foreground hover:text-foreground",
+          {pathname === "/dashboard" && (
+            <div className="bg-primary/10 absolute inset-0 rounded-xl" />
           )}
-        >
-          <ListChecks
-            className={cn(
-              "h-5 w-5",
-              pathname === "/my-requests" && "fill-primary/20",
-            )}
-          />
-          <span className="text-xs font-medium">Requests</span>
+          <HomeIcon className="relative z-10 h-5 w-5" />
+          <span className="relative z-10 text-xs font-medium">Home</span>
         </Link>
 
-        {/* Center FAB */}
-        <div className="flex flex-1 items-center justify-center">
-          <Link href="/request">
-            <Button
-              size="lg"
-              className="-mt-8 h-14 w-14 rounded-full shadow-lg"
-            >
-              <Plus className="h-6 w-6" />
-            </Button>
-          </Link>
-        </div>
-
-        {/* Right nav item */}
         <Link
           href="/coverage"
           className={cn(
-            "flex h-full flex-1 flex-col items-center justify-center gap-1 transition-colors",
+            "relative flex flex-1 flex-col items-center justify-center gap-1 rounded-xl px-4 py-2 transition-all active:scale-95",
             pathname === "/coverage"
               ? "text-primary"
-              : "text-muted-foreground hover:text-foreground",
+              : "text-muted-foreground active:bg-accent/50",
           )}
         >
-          <Grid3x3
-            className={cn(
-              "h-5 w-5",
-              pathname === "/coverage" && "fill-primary/20",
-            )}
-          />
-          <span className="text-xs font-medium">Coverage</span>
+          {pathname === "/coverage" && (
+            <div className="bg-primary/10 absolute inset-0 rounded-xl" />
+          )}
+          <Squares2X2Icon className="relative z-10 h-5 w-5" />
+          <span className="relative z-10 text-xs font-medium">Coverage</span>
+        </Link>
+
+        <Link
+          href="/request"
+          className={cn(
+            "relative flex flex-1 flex-col items-center justify-center gap-1 rounded-xl px-4 py-2 transition-all active:scale-95",
+            pathname === "/request"
+              ? "text-primary"
+              : "text-muted-foreground active:bg-accent/50",
+          )}
+        >
+          {pathname === "/request" && (
+            <div className="bg-primary/10 absolute inset-0 rounded-xl" />
+          )}
+          <PlusCircleIcon className="relative z-10 h-5 w-5" />
+          <span className="relative z-10 text-xs font-medium">New Request</span>
         </Link>
       </div>
     </nav>

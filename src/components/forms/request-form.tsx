@@ -16,7 +16,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { CalendarIcon, Plus, Trash2 } from "lucide-react";
+import { CalendarIcon, PlusIcon, TrashIcon } from "@heroicons/react/24/solid";
 import { api } from "@/trpc/react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -150,74 +150,76 @@ export default function RequestForm() {
   return (
     <div className="pb-24">
       <div className="container mx-auto max-w-3xl px-4 py-6">
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
           {/* Sessions List */}
-          <div ref={sessionsRef} className="space-y-4">
+          <div ref={sessionsRef} className="space-y-6">
             {fields.map((field, index) => (
               <div key={field.id} className="rounded-xl border p-6 shadow-xs">
-                <div className="space-y-4">
-                  {/* Date */}
-                  <div>
-                    <Label htmlFor={`sessions.${index}.date`}>Date</Label>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button
-                          variant="outline"
-                          className={cn(
-                            "mt-2 w-full justify-start text-left font-normal",
-                            !watchedValues.sessions?.[index]?.date &&
-                              "text-muted-foreground",
-                          )}
-                        >
-                          <CalendarIcon className="mr-2 h-4 w-4" />
-                          {watchedValues.sessions?.[index]?.date
-                            ? format(watchedValues.sessions[index].date, "PPP")
-                            : "Pick a date"}
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0">
-                        <Calendar
-                          mode="single"
-                          selected={watchedValues.sessions?.[index]?.date}
-                          onSelect={(date) =>
-                            date && setValue(`sessions.${index}.date`, date)
-                          }
-                          disabled={(date) =>
-                            date < new Date(new Date().setHours(0, 0, 0, 0))
-                          }
-                          initialFocus
-                        />
-                      </PopoverContent>
-                    </Popover>
+                <div className="space-y-6">
+                  {/* Date & Clinic Name Group */}
+                  <div className="space-y-5">
+                    <div className="space-y-1.5">
+                      <Label htmlFor={`sessions.${index}.date`}>Date</Label>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant="outline"
+                            className={cn(
+                              "w-full justify-start text-left font-normal",
+                              !watchedValues.sessions?.[index]?.date &&
+                                "text-muted-foreground",
+                            )}
+                          >
+                            <CalendarIcon className="mr-2 h-4 w-4" />
+                            {watchedValues.sessions?.[index]?.date
+                              ? format(
+                                  watchedValues.sessions[index].date,
+                                  "PPP",
+                                )
+                              : "Pick a date"}
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0">
+                          <Calendar
+                            mode="single"
+                            selected={watchedValues.sessions?.[index]?.date}
+                            onSelect={(date) =>
+                              date && setValue(`sessions.${index}.date`, date)
+                            }
+                            disabled={(date) =>
+                              date < new Date(new Date().setHours(0, 0, 0, 0))
+                            }
+                            initialFocus
+                          />
+                        </PopoverContent>
+                      </Popover>
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <Label htmlFor={`sessions.${index}.clinicName`}>
+                        Clinic Name
+                      </Label>
+                      <Input
+                        {...register(`sessions.${index}.clinicName`)}
+                        placeholder="e.g., Tuesday Trauma Clinic"
+                      />
+                      {errors.sessions?.[index]?.clinicName && (
+                        <p className="text-destructive mt-1 text-sm">
+                          {errors.sessions[index]?.clinicName?.message}
+                        </p>
+                      )}
+                    </div>
                   </div>
 
-                  {/* Clinic Name */}
-                  <div>
-                    <Label htmlFor={`sessions.${index}.clinicName`}>
-                      Clinic Name
-                    </Label>
-                    <Input
-                      {...register(`sessions.${index}.clinicName`)}
-                      placeholder="e.g., Tuesday Trauma Clinic"
-                      className="mt-2"
-                    />
-                    {errors.sessions?.[index]?.clinicName && (
-                      <p className="text-destructive mt-1 text-sm">
-                        {errors.sessions[index]?.clinicName?.message}
-                      </p>
-                    )}
-                  </div>
-
-                  {/* Times */}
+                  {/* Time Group */}
                   <div className="grid grid-cols-2 gap-4">
-                    <div>
+                    <div className="space-y-1.5">
                       <Label htmlFor={`sessions.${index}.startTime`}>
                         Start Time
                       </Label>
                       <Input
                         {...register(`sessions.${index}.startTime`)}
                         type="time"
-                        className="mt-2"
                       />
                       {errors.sessions?.[index]?.startTime && (
                         <p className="text-destructive mt-1 text-sm">
@@ -225,14 +227,13 @@ export default function RequestForm() {
                         </p>
                       )}
                     </div>
-                    <div>
+                    <div className="space-y-1.5">
                       <Label htmlFor={`sessions.${index}.endTime`}>
                         End Time
                       </Label>
                       <Input
                         {...register(`sessions.${index}.endTime`)}
                         type="time"
-                        className="mt-2"
                       />
                       {errors.sessions?.[index]?.endTime && (
                         <p className="text-destructive mt-1 text-sm">
@@ -243,29 +244,28 @@ export default function RequestForm() {
                   </div>
 
                   {/* Notes */}
-                  <div>
+                  <div className="space-y-1.5">
                     <Label htmlFor={`sessions.${index}.notes`}>
                       Notes (Optional)
                     </Label>
                     <Textarea
                       {...register(`sessions.${index}.notes`)}
                       placeholder="Any specific details..."
-                      className="mt-2"
                       rows={2}
                     />
                   </div>
 
                   {/* Remove Button */}
                   {fields.length > 1 && (
-                    <div className="flex justify-end border-t pt-2">
+                    <div className="-mb-2 flex justify-end border-t pt-4">
                       <Button
-                        variant="ghost"
+                        variant="outline"
                         size="sm"
                         onClick={() => remove(index)}
                         type="button"
-                        className="text-destructive hover:text-destructive"
+                        className="border-destructive/30 text-destructive hover:bg-destructive hover:text-destructive-foreground"
                       >
-                        <Trash2 className="mr-2 h-4 w-4" />
+                        <TrashIcon className="mr-2 h-4 w-4" />
                         Remove
                       </Button>
                     </div>
@@ -282,7 +282,7 @@ export default function RequestForm() {
             onClick={addSession}
             className="w-full"
           >
-            <Plus className="mr-2 h-4 w-4" />
+            <PlusIcon className="mr-2 h-4 w-4" />
             Add Another Session
           </Button>
 
@@ -294,7 +294,7 @@ export default function RequestForm() {
           )}
 
           {/* Submit Button */}
-          <div className="flex gap-3 pt-4">
+          <div className="flex gap-3 pt-6">
             <Button
               type="button"
               variant="outline"

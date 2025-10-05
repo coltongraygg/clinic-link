@@ -22,18 +22,18 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
-  Calendar,
-  List,
-  ChevronLeft,
-  ChevronRight,
-  Filter,
-  Download,
-  Search,
-  Clock,
-  User,
-  AlertCircle,
-  CheckCircle2,
-} from "lucide-react";
+  CalendarIcon,
+  ListBulletIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  FunnelIcon,
+  ArrowDownTrayIcon,
+  MagnifyingGlassIcon,
+  ClockIcon,
+  UserIcon,
+  ExclamationCircleIcon,
+  CheckCircleIcon,
+} from "@heroicons/react/24/solid";
 import { api } from "@/trpc/react";
 import { toast } from "sonner";
 import { ConfirmationDialog } from "@/components/common/confirmation-dialog";
@@ -195,12 +195,12 @@ export default function CoverageBoard() {
               >
                 {session.coveredBySupervisorId ? (
                   <>
-                    <CheckCircle2 className="mr-1 h-3 w-3" />
+                    <CheckCircleIcon className="mr-1 h-3 w-3" />
                     Covered
                   </>
                 ) : (
                   <>
-                    <AlertCircle className="mr-1 h-3 w-3" />
+                    <ExclamationCircleIcon className="mr-1 h-3 w-3" />
                     Uncovered
                   </>
                 )}
@@ -223,12 +223,12 @@ export default function CoverageBoard() {
 
         <div className="space-y-1 text-sm">
           <div className="flex items-center gap-2 text-gray-600">
-            <Clock className="h-3 w-3" />
+            <ClockIcon className="h-3 w-3" />
             {format(new Date(session.startTime), "h:mm a")} -{" "}
             {format(new Date(session.endTime), "h:mm a")}
           </div>
           <div className="flex items-center gap-2 text-gray-600">
-            <User className="h-3 w-3" />
+            <UserIcon className="h-3 w-3" />
             Requested by{" "}
             {session.request.supervisor.name ??
               session.request.supervisor.email}
@@ -302,7 +302,7 @@ export default function CoverageBoard() {
     <div className="space-y-3">
       {filteredSessions.length === 0 ? (
         <div className="py-8 text-center text-gray-500">
-          <Calendar className="mx-auto mb-3 h-12 w-12 text-gray-400" />
+          <CalendarIcon className="mx-auto mb-3 h-12 w-12 text-gray-400" />
           <p>No sessions found for the selected week and filters.</p>
         </div>
       ) : (
@@ -335,7 +335,7 @@ export default function CoverageBoard() {
               </div>
               <div className="flex gap-2">
                 <Button variant="outline" onClick={exportToCSV}>
-                  <Download className="mr-2 h-4 w-4" />
+                  <ArrowDownTrayIcon className="mr-2 h-4 w-4" />
                   Export
                 </Button>
                 <Tabs
@@ -344,11 +344,11 @@ export default function CoverageBoard() {
                 >
                   <TabsList>
                     <TabsTrigger value="list">
-                      <List className="mr-2 h-4 w-4" />
+                      <ListBulletIcon className="mr-2 h-4 w-4" />
                       List
                     </TabsTrigger>
                     <TabsTrigger value="calendar">
-                      <Calendar className="mr-2 h-4 w-4" />
+                      <CalendarIcon className="mr-2 h-4 w-4" />
                       Calendar
                     </TabsTrigger>
                   </TabsList>
@@ -360,7 +360,7 @@ export default function CoverageBoard() {
             {/* Week Navigation */}
             <div className="mb-4 flex items-center justify-between">
               <Button variant="outline" onClick={prevWeek}>
-                <ChevronLeft className="h-4 w-4" />
+                <ChevronLeftIcon className="h-4 w-4" />
                 Previous Week
               </Button>
               <Button variant="outline" onClick={thisWeek}>
@@ -368,7 +368,7 @@ export default function CoverageBoard() {
               </Button>
               <Button variant="outline" onClick={nextWeek}>
                 Next Week
-                <ChevronRight className="h-4 w-4" />
+                <ChevronRightIcon className="h-4 w-4" />
               </Button>
             </div>
 
@@ -418,7 +418,7 @@ export default function CoverageBoard() {
               <div>
                 <Label htmlFor="search">Search Clinics</Label>
                 <div className="relative">
-                  <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform text-gray-400" />
+                  <MagnifyingGlassIcon className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform text-gray-400" />
                   <Input
                     id="search"
                     placeholder="Search clinic names..."
@@ -443,7 +443,7 @@ export default function CoverageBoard() {
                   }
                   className="w-full"
                 >
-                  <Filter className="mr-2 h-4 w-4" />
+                  <FunnelIcon className="mr-2 h-4 w-4" />
                   Clear Filters
                 </Button>
               </div>

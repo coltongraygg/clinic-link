@@ -14,7 +14,13 @@ import {
   ItemDescription,
   ItemActions,
 } from "@/components/ui/item";
-import { Calendar, AlertTriangle, CheckCircle2 } from "lucide-react";
+import {
+  CalendarIcon,
+  ExclamationTriangleIcon,
+  CheckCircleIcon,
+  ClockIcon,
+  HandRaisedIcon,
+} from "@heroicons/react/24/solid";
 import { api } from "@/trpc/react";
 import { toast } from "sonner";
 import { ConfirmationDialog } from "@/components/common/confirmation-dialog";
@@ -61,6 +67,13 @@ export default function UnifiedCoverageBoard() {
     open: false,
   });
 
+  const [unclaimDialog, setUnclaimDialog] = useState<{
+    open: boolean;
+    sessionId?: string;
+  }>({
+    open: false,
+  });
+
   // Get current user session
   const { data: currentUser } = api.supervisor.getCurrentUser.useQuery();
 
@@ -77,12 +90,32 @@ export default function UnifiedCoverageBoard() {
     onSuccess: () => {
       toast.success("Session claimed");
       void refetchSessions();
+      void refetchCoverage();
       setClaimDialog({ open: false });
     },
     onError: (error) => {
       toast.error(error.message);
     },
   });
+
+  const releaseMutation = api.clinicSession.release.useMutation({
+    onSuccess: () => {
+      toast.success("Session released");
+      void refetchSessions();
+      void refetchCoverage();
+      setUnclaimDialog({ open: false });
+    },
+    onError: (error) => {
+      toast.error(error.message);
+    },
+  });
+
+  // Get user's own requests
+  const { data: myRequests } = api.timeOffRequest.getMyRequests.useQuery();
+
+  // Get sessions user is covering
+  const { data: myCoverage, refetch: refetchCoverage } =
+    api.clinicSession.getMyCoverage.useQuery();
 
   const handleClaim = (sessionId: string) => {
     setClaimDialog({ open: true, sessionId });
@@ -94,15 +127,26 @@ export default function UnifiedCoverageBoard() {
     }
   };
 
+  const handleUnclaim = (sessionId: string) => {
+    setUnclaimDialog({ open: true, sessionId });
+  };
+
+  const confirmUnclaim = () => {
+    if (unclaimDialog.sessionId) {
+      releaseMutation.mutate({ sessionId: unclaimDialog.sessionId });
+    }
+  };
+
   const SessionItem = ({
     session,
     variant = "default",
   }: {
     session: Session;
-    variant?: "mine" | "urgent" | "default";
+    variant?: "mine" | "urgent" | "default" | "covering";
   }) => {
     const isUrgent = variant === "urgent";
     const isMine = variant === "mine";
+    const isCovering = variant === "covering";
 
     return (
       <Item
@@ -111,7 +155,7 @@ export default function UnifiedCoverageBoard() {
         className="transition-all duration-200 hover:shadow-md"
       >
         <ItemMedia variant="icon">
-          <Calendar className="h-4 w-4" />
+          <CalendarIcon className="h-4 w-4" />
         </ItemMedia>
 
         <ItemContent>
@@ -124,8 +168,14 @@ export default function UnifiedCoverageBoard() {
             )}
             {isUrgent && (
               <Badge variant="destructive" className="ml-2">
-                <AlertTriangle className="mr-1 h-3 w-3" />
+                <ExclamationTriangleIcon className="mr-1 h-3 w-3" />
                 Urgent
+              </Badge>
+            )}
+            {isCovering && (
+              <Badge variant="outline" className="ml-2">
+                <CheckCircleIcon className="mr-1 h-3 w-3" />
+                Covering
               </Badge>
             )}
           </ItemTitle>
@@ -140,7 +190,18 @@ export default function UnifiedCoverageBoard() {
           </ItemDescription>
         </ItemContent>
 
-        {!isMine && (
+        {isCovering ? (
+          <ItemActions>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => handleUnclaim(session.id)}
+              disabled={releaseMutation.isPending}
+            >
+              Unclaim
+            </Button>
+          </ItemActions>
+        ) : !isMine ? (
           <ItemActions>
             <Button
               size="sm"
@@ -150,7 +211,7 @@ export default function UnifiedCoverageBoard() {
               Claim
             </Button>
           </ItemActions>
-        )}
+        ) : null}
       </Item>
     );
   };
@@ -163,50 +224,137 @@ export default function UnifiedCoverageBoard() {
     );
   }
 
-  // Sort all sessions by date
-  const allSessions = [...(sessions ?? [])].sort((a, b) => {
-    const dateA = new Date(a.date).getTime();
-    const dateB = new Date(b.date).getTime();
-    return dateA - dateB;
-  });
+  // Extract uncovered sessions from user's requests
+  const myUncoveredSessions =
+    myRequests
+      ?.flatMap((request) =>
+        request.clinicSessions
+          .filter((session) => !session.coveredBySupervisorId)
+          .map((session) => ({
+            ...session,
+            request: {
+              id: request.id,
+              supervisorId: request.supervisorId,
+              supervisor: {
+                id: currentUser?.id ?? "",
+                name: currentUser?.name ?? null,
+                email: currentUser?.email ?? null,
+                image: currentUser?.image ?? null,
+              },
+            },
+          })),
+      )
+      .sort(
+        (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime(),
+      ) ?? [];
+
+  // Filter sessions to exclude user's own
+  const availableToClaimSessions = [...(sessions ?? [])]
+    .filter((session) => session.request.supervisorId !== currentUser?.id)
+    .sort((a, b) => {
+      const dateA = new Date(a.date).getTime();
+      const dateB = new Date(b.date).getTime();
+      return dateA - dateB;
+    });
 
   return (
     <>
       <div className="pb-24">
-        <div className="container mx-auto max-w-5xl px-4 py-6">
-          {allSessions.length > 0 ? (
-            <ItemGroup>
-              {allSessions.map((session, index) => {
-                const isMine = session.request.supervisorId === currentUser?.id;
-                const isUrgent =
-                  new Date(session.date).getTime() - new Date().getTime() <=
-                  48 * 60 * 60 * 1000;
+        <div className="container mx-auto max-w-5xl space-y-6 px-4 py-6">
+          {/* My Time Off Section */}
+          {myUncoveredSessions.length > 0 && (
+            <div className="space-y-3">
+              <div className="flex items-center gap-2 px-1">
+                <div className="bg-primary/10 flex h-6 w-6 items-center justify-center rounded-full">
+                  <ClockIcon className="text-primary h-3.5 w-3.5" />
+                </div>
+                <span className="text-muted-foreground text-sm font-medium">
+                  My Time Off
+                </span>
+              </div>
+              <ItemGroup>
+                {myUncoveredSessions.map((session, index) => (
+                  <Fragment key={session.id}>
+                    <SessionItem session={session as Session} variant="mine" />
+                    {index < myUncoveredSessions.length - 1 && (
+                      <ItemSeparator />
+                    )}
+                  </Fragment>
+                ))}
+              </ItemGroup>
+            </div>
+          )}
 
-                return (
+          {/* Sessions I'm Covering */}
+          {myCoverage && myCoverage.length > 0 && (
+            <div className="space-y-3">
+              <div className="flex items-center gap-2 px-1">
+                <div className="flex h-6 w-6 items-center justify-center rounded-full bg-green-100">
+                  <CheckCircleIcon className="h-3.5 w-3.5 text-green-600" />
+                </div>
+                <span className="text-muted-foreground text-sm font-medium">
+                  Sessions I&apos;m Covering
+                </span>
+              </div>
+              <ItemGroup>
+                {myCoverage.map((session, index) => (
                   <Fragment key={session.id}>
                     <SessionItem
-                      session={session}
-                      variant={
-                        isMine ? "mine" : isUrgent ? "urgent" : "default"
-                      }
+                      session={session as Session}
+                      variant="covering"
                     />
-                    {index < allSessions.length - 1 && <ItemSeparator />}
+                    {index < myCoverage.length - 1 && <ItemSeparator />}
                   </Fragment>
-                );
-              })}
-            </ItemGroup>
+                ))}
+              </ItemGroup>
+            </div>
+          )}
+
+          {/* Available to Cover Section */}
+          {availableToClaimSessions.length > 0 ? (
+            <div className="space-y-3">
+              <div className="flex items-center gap-2 px-1">
+                <div className="bg-accent/50 flex h-6 w-6 items-center justify-center rounded-full">
+                  <HandRaisedIcon className="text-accent-foreground h-3.5 w-3.5" />
+                </div>
+                <span className="text-muted-foreground text-sm font-medium">
+                  Available to Cover
+                </span>
+              </div>
+              <ItemGroup>
+                {availableToClaimSessions.map((session, index) => {
+                  const isUrgent =
+                    new Date(session.date).getTime() - new Date().getTime() <=
+                    48 * 60 * 60 * 1000;
+
+                  return (
+                    <Fragment key={session.id}>
+                      <SessionItem
+                        session={session}
+                        variant={isUrgent ? "urgent" : "default"}
+                      />
+                      {index < availableToClaimSessions.length - 1 && (
+                        <ItemSeparator />
+                      )}
+                    </Fragment>
+                  );
+                })}
+              </ItemGroup>
+            </div>
           ) : (
-            <Empty>
-              <EmptyHeader>
-                <EmptyMedia variant="icon">
-                  <CheckCircle2 />
-                </EmptyMedia>
-                <EmptyTitle>All sessions covered</EmptyTitle>
-                <EmptyDescription>
-                  No coverage requests at this time
-                </EmptyDescription>
-              </EmptyHeader>
-            </Empty>
+            !myUncoveredSessions.length && (
+              <Empty>
+                <EmptyHeader>
+                  <EmptyMedia variant="icon">
+                    <CheckCircleIcon />
+                  </EmptyMedia>
+                  <EmptyTitle>All sessions covered</EmptyTitle>
+                  <EmptyDescription>
+                    No coverage requests at this time
+                  </EmptyDescription>
+                </EmptyHeader>
+              </Empty>
+            )
           )}
         </div>
       </div>
@@ -219,6 +367,16 @@ export default function UnifiedCoverageBoard() {
         confirmText="Claim"
         onConfirm={confirmClaim}
         loading={claimMutation.isPending}
+      />
+
+      <ConfirmationDialog
+        open={unclaimDialog.open}
+        onOpenChange={(open) => setUnclaimDialog({ open })}
+        title="Release session"
+        description="This will remove you as the covering supervisor and make the session available again."
+        confirmText="Release"
+        onConfirm={confirmUnclaim}
+        loading={releaseMutation.isPending}
       />
     </>
   );
